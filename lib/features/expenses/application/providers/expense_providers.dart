@@ -1,3 +1,4 @@
+import 'package:flutter/material.dart' show DateTimeRange;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../data/data_sources/expense_remote_data_source.dart';
@@ -17,7 +18,8 @@ final expenseRepositoryProvider = Provider<IExpenseRepository>((ref) {
 });
 
 /// Stream provider for all expenses (real-time)
-final expensesStreamProvider = StreamProvider<List<Expense>>((ref) {
+/// Uses autoDispose to prevent wasted Firestore reads when not in use
+final expensesStreamProvider = StreamProvider.autoDispose<List<Expense>>((ref) {
   final repository = ref.watch(expenseRepositoryProvider);
   return repository.watchAll();
 });
@@ -31,14 +33,15 @@ final expenseByIdProvider = FutureProvider.family<Expense?, String>((ref, id) {
 /// Selected category filter
 final expenseCategoryFilterProvider = StateProvider<ExpenseCategory?>((ref) => null);
 
-/// Date range filter
+/// Date range filter (uses Flutter's built-in DateTimeRange)
 final expenseDateRangeProvider = StateProvider<DateTimeRange?>((ref) => null);
 
-class DateTimeRange {
-  final DateTime start;
-  final DateTime end;
-  const DateTimeRange({required this.start, required this.end});
-}
+/// Helper to normalize DateTime to start of day for inclusive date comparisons
+DateTime _startOfDay(DateTime date) => DateTime(date.year, date.month, date.day);
+
+/// Helper to normalize DateTime to end of day for inclusive date comparisons
+DateTime _endOfDay(DateTime date) =>
+    DateTime(date.year, date.month, date.day, 23, 59, 59, 999);
 
 /// Filtered expenses based on category and date range
 final filteredExpensesProvider = Provider<AsyncValue<List<Expense>>>((ref) {
@@ -54,9 +57,12 @@ final filteredExpensesProvider = Provider<AsyncValue<List<Expense>>>((ref) {
     }
 
     if (dateRange != null) {
-      filtered = filtered.where((e) =>
-          e.date.isAfter(dateRange.start.subtract(const Duration(days: 1))) &&
-          e.date.isBefore(dateRange.end.add(const Duration(days: 1)))).toList();
+      final rangeStart = _startOfDay(dateRange.start);
+      final rangeEnd = _endOfDay(dateRange.end);
+      filtered = filtered.where((e) {
+        final expenseDate = e.date;
+        return !expenseDate.isBefore(rangeStart) && !expenseDate.isAfter(rangeEnd);
+      }).toList();
     }
 
     return filtered;

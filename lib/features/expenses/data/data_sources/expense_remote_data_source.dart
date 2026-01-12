@@ -126,13 +126,24 @@ class ExpenseRemoteDataSourceImpl implements ExpenseRemoteDataSource {
   @override
   Future<ExpenseDTO> update(ExpenseDTO expense) async {
     try {
+      // Defense-in-depth: verify expense belongs to current user
+      if (expense.userId != null && expense.userId != _userId) {
+        throw const AuthException(
+          'Cannot update expense belonging to another user',
+          code: 'permission-denied',
+        );
+      }
+
       final data = expense.toJson()..['updatedAt'] = Timestamp.now();
       data.remove('createdAt');
+      // Ensure userId is set to current user
+      data['userId'] = _userId;
 
       await _expensesCollection.doc(expense.id).update(data);
       final doc = await _expensesCollection.doc(expense.id).get();
       return ExpenseDTO.fromJson(doc.data()!, doc.id);
     } catch (e) {
+      if (e is AuthException) rethrow;
       throw ServerException('Failed to update expense: $e', code: 'firestore-write-error');
     }
   }
@@ -140,20 +151,77 @@ class ExpenseRemoteDataSourceImpl implements ExpenseRemoteDataSource {
   @override
   Future<void> delete(String id) async {
     try {
+      // Fetch expense first to check for receipt
+      final doc = await _expensesCollection.doc(id).get();
+      if (doc.exists && doc.data() != null) {
+        final receiptUrl = doc.data()!['receiptUrl'] as String?;
+        // Delete receipt from Storage if it exists
+        if (receiptUrl != null && receiptUrl.isNotEmpty) {
+          try {
+            await deleteReceipt(receiptUrl);
+          } catch (_) {
+            // Log but don't fail deletion if receipt cleanup fails
+            // Receipt may have been deleted already or URL may be invalid
+          }
+        }
+      }
+      // Delete the expense document
       await _expensesCollection.doc(id).delete();
     } catch (e) {
       throw ServerException('Failed to delete expense: $e', code: 'firestore-write-error');
     }
   }
 
+  /// Maximum allowed receipt file size (5MB)
+  static const int _maxReceiptSizeBytes = 5 * 1024 * 1024;
+
+  /// Allowed receipt file extensions
+  static const List<String> _allowedExtensions = [
+    '.jpg',
+    '.jpeg',
+    '.png',
+    '.gif',
+    '.webp',
+    '.pdf',
+  ];
+
   @override
   Future<String> uploadReceipt(String expenseId, String filePath) async {
     try {
       final file = File(filePath);
+
+      // Validate file exists
+      if (!await file.exists()) {
+        throw const ServerException(
+          'Receipt file does not exist',
+          code: 'file-not-found',
+        );
+      }
+
+      // Validate file size (max 5MB for cost control)
+      final fileSize = await file.length();
+      if (fileSize > _maxReceiptSizeBytes) {
+        throw const ServerException(
+          'Receipt file is too large (max 5MB)',
+          code: 'file-too-large',
+        );
+      }
+
+      // Validate file type
+      final extension = filePath.toLowerCase().substring(
+          filePath.lastIndexOf('.'));
+      if (!_allowedExtensions.contains(extension)) {
+        throw ServerException(
+          'Invalid file type. Allowed: ${_allowedExtensions.join(", ")}',
+          code: 'invalid-file-type',
+        );
+      }
+
       final ref = _storage.ref().child('users/$_userId/receipts/$expenseId');
       await ref.putFile(file);
       return await ref.getDownloadURL();
     } catch (e) {
+      if (e is ServerException) rethrow;
       throw ServerException('Failed to upload receipt: $e', code: 'storage-upload-error');
     }
   }
