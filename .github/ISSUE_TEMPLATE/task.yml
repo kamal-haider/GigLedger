@@ -1,0 +1,89 @@
+name: Task
+description: A specific implementation task
+title: "[Task]: "
+labels: ["enhancement"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Use this template for specific implementation tasks.
+
+  - type: dropdown
+    id: task-type
+    attributes:
+      label: Task Type
+      options:
+        - Frontend UI
+        - Backend/Firebase
+        - Data Model
+        - Testing
+        - Documentation
+        - Refactoring
+        - Performance
+        - Security
+    validations:
+      required: true
+
+  - type: dropdown
+    id: feature-area
+    attributes:
+      label: Feature Area
+      options:
+        - Auth
+        - Dashboard
+        - Invoices
+        - Expenses
+        - Clients
+        - Reports
+        - Settings
+        - Onboarding
+        - Foundation
+        - Core/Shared
+    validations:
+      required: true
+
+  - type: textarea
+    id: description
+    attributes:
+      label: Description
+      description: What needs to be done?
+      placeholder: Describe the task...
+    validations:
+      required: true
+
+  - type: textarea
+    id: acceptance-criteria
+    attributes:
+      label: Acceptance Criteria
+      description: Definition of done
+      placeholder: |
+        - [ ] Criterion 1
+        - [ ] Criterion 2
+    validations:
+      required: true
+
+  - type: textarea
+    id: technical-notes
+    attributes:
+      label: Technical Notes
+      description: Implementation details
+      placeholder: |
+        - Files to modify
+        - Patterns to follow
+        - Tests needed
+
+  - type: textarea
+    id: dependencies
+    attributes:
+      label: Dependencies
+      description: What must be completed first?
+      placeholder: "Blocked by: #X, #Y"
+
+  - type: textarea
+    id: references
+    attributes:
+      label: References
+      description: Links to docs, designs, related issues
+      placeholder: |
+        - docs/02_mvp_prd.md
+        - Related: #X
