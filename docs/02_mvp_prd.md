@@ -3,9 +3,9 @@
 ## Document Info
 - Product: GigLedger
 - Version: MVP v1
-- Platforms: {{PLATFORMS}}
+- Platforms: iOS, Android
 - Stack: Flutter, Firebase, Riverpod
-- Mode: {{MVP_MODE}}
+- Mode: Freemium (Free tier with Pro upgrade)
 
 ---
 
@@ -14,9 +14,10 @@
 This document defines the **Minimum Viable Product (MVP)** for GigLedger.
 
 The MVP focuses on:
-- [Core focus 1]
-- [Core focus 2]
-- [Core focus 3]
+- Creating and sending invoices quickly
+- Tracking expenses with receipt photos
+- Managing clients in one place
+- Viewing basic financial insights
 - Clean foundations for future expansion
 
 Anything not explicitly included here is **out of scope** for MVP.
@@ -26,114 +27,166 @@ Anything not explicitly included here is **out of scope** for MVP.
 ## 2. MVP Goals
 
 ### Primary Goals
-1. [Primary goal 1]
-2. [Primary goal 2]
-3. [Primary goal 3]
+1. Enable freelancers to create and send a professional invoice in under 60 seconds
+2. Allow expense tracking with photo receipts and basic categorization
+3. Provide a unified client database accessible during invoicing
+4. Show a simple dashboard with income, expenses, and profit summary
 
 ### Success Metrics
-- [Metric 1 with target]
-- [Metric 2 with target]
-- [Metric 3 with target]
-- [Metric 4 with target]
+- 60% of users create their first invoice within 5 minutes of signup
+- Average invoice creation time < 60 seconds after first use
+- 40% of users log at least 3 expenses in first week
+- 30-day retention rate > 40%
+- App Store rating > 4.5 stars
 
 ---
 
 ## 3. In-Scope Features
 
 ### 3.1 Authentication & User Profile
-- Sign in with [providers: Google / Apple / Email / etc.]
+- Sign in with Google, Apple, and Email/Password
 - Store user preferences:
-  - [Preference 1]
-  - [Preference 2]
-  - [Preference 3]
+  - Business name and logo
+  - Default currency (USD, EUR, GBP, etc.)
+  - Tax rate for invoices
+  - Payment instructions (bank details, PayPal, etc.)
 
 ---
 
-### 3.2 Home Screen
-**Purpose:** Entry point and discovery
+### 3.2 Dashboard (Home Screen)
+**Purpose:** Financial overview and quick actions
 
 **Requirements:**
-- [Requirement 1]
-- [Requirement 2]
-- [Requirement 3]
+- Display total income (current month + YTD)
+- Display total expenses (current month + YTD)
+- Display net profit (income - expenses)
+- Quick action buttons: New Invoice, Add Expense, Add Client
+- Recent activity list (last 5 invoices/expenses)
+- Pull-to-refresh for data sync
 
 ---
 
-### 3.3 [Core Feature Screen 1]
-**Purpose:** [What this screen accomplishes]
+### 3.3 Invoicing (Core Feature)
+**Purpose:** Create, send, and track professional invoices
 
 **Requirements:**
-- [Requirement 1]
-- [Requirement 2]
-- [Requirement 3]
-- [Requirement 4]
-
----
-
-### 3.4 [Core Feature Screen 2] (Core Feature)
-**Purpose:** [What this screen accomplishes]
-
-**Requirements:**
-- [Requirement 1]
-- [Requirement 2]
-- [Requirement 3]
-- [Requirement 4]
-- [Requirement 5]
+- Create invoice with:
+  - Client selection (from client database)
+  - Line items (description, quantity, rate, amount)
+  - Tax calculation (configurable rate)
+  - Due date selection
+  - Notes/terms field
+- Invoice templates (2-3 professional designs)
+- Send invoice via email (in-app) or share link
+- Invoice statuses: Draft, Sent, Viewed, Paid, Overdue
+- Mark invoice as paid (manual)
+- View invoice history per client
+- Edit/duplicate existing invoices
 
 **Non-Goals:**
-- No [excluded feature]
-- No [excluded feature]
+- No partial payments in MVP
+- No recurring invoices in MVP
+- No in-app payment processing (Stripe integration is post-MVP)
 
 ---
 
-### 3.5 [Core Feature Screen 3]
-**Purpose:** [What this screen accomplishes]
+### 3.4 Expense Tracking (Core Feature)
+**Purpose:** Log and categorize business expenses
 
 **Requirements:**
-- [Requirement 1]
-- [Requirement 2]
-- [Requirement 3]
-- [Requirement 4]
+- Add expense with:
+  - Amount and date
+  - Category (dropdown: Travel, Office, Software, Marketing, Meals, Equipment, Other)
+  - Vendor/description
+  - Photo receipt attachment (camera or gallery)
+- View expense list with filters (date range, category)
+- Edit/delete expenses
+- Monthly expense summary by category
+
+**Non-Goals:**
+- No OCR auto-extraction in MVP (manual entry)
+- No bank sync in MVP
+- No mileage tracking in MVP
 
 ---
 
-### 3.6 [Core Feature Screen 4]
-**Purpose:** [What this screen accomplishes]
+### 3.5 Client Management
+**Purpose:** Maintain client database for invoicing
 
 **Requirements:**
-- [Requirement 1]
-- [Requirement 2]
-- [Requirement 3]
-- Available only for [conditions]
+- Add client with:
+  - Name (person or company)
+  - Email address
+  - Phone (optional)
+  - Address (optional)
+  - Notes field
+- View client list with search
+- View client detail page showing:
+  - Contact info
+  - Invoice history
+  - Total billed / Total paid
+- Edit/delete clients
+- Quick-add client during invoice creation
 
 ---
 
-### 3.7 [Secondary Feature] (Limited)
-**Purpose:** [What this accomplishes]
+### 3.6 Reports & Insights
+**Purpose:** Basic financial visibility
 
 **Requirements:**
-- [Requirement 1]
-- [Requirement 2]
-- No [limitation]
-- No [limitation] in MVP
+- Income vs Expenses chart (monthly, last 6 months)
+- Top clients by revenue (list)
+- Expense breakdown by category (pie chart)
+- Exportable summary (PDF) for tax prep
+- Available only on dashboard and dedicated Reports tab
 
 ---
 
-### 3.8 [Optional Feature] (Optional MVP+)
-- [Optional requirement 1]
-- [Optional requirement 2]
-- [Optional requirement 3]
+### 3.7 Settings
+**Purpose:** App configuration
+
+**Requirements:**
+- Edit business profile (name, logo, address)
+- Set default currency
+- Set default tax rate
+- Configure payment instructions
+- Notification preferences
+- Sign out / Delete account
+
+---
+
+### 3.8 Notifications (Limited)
+**Purpose:** Payment reminders
+
+**Requirements:**
+- Push notification when invoice becomes overdue
+- Optional: Weekly summary notification (configurable)
+- No email automation in MVP
+- No SMS notifications in MVP
+
+---
+
+### 3.9 Onboarding (MVP+)
+- 3-screen intro carousel explaining key features
+- Business profile setup wizard on first launch
+- Skip option for returning users
 
 ---
 
 ## 4. Out of Scope (Explicit)
 
-- [Out of scope feature 1]
-- [Out of scope feature 2]
-- [Out of scope feature 3]
-- [Out of scope feature 4]
-- [Out of scope feature 5]
-- [Out of scope feature 6]
+- Recurring invoices
+- In-app payment processing (Stripe checkout)
+- Bank account sync
+- OCR receipt scanning (auto-extraction)
+- Time tracking
+- Project management features
+- Multi-currency per invoice (single currency per account)
+- Team/multi-user accounts
+- Estimates/quotes (separate from invoices)
+- Contract/proposal generation
+- Mileage tracking
+- Inventory management
 
 These are **future roadmap items**, not MVP.
 
@@ -142,64 +195,82 @@ These are **future roadmap items**, not MVP.
 ## 5. Monetization (MVP-Compatible)
 
 ### Free Tier
-- [Free feature 1]
-- [Free feature 2]
-- [Free feature 3]
+- Up to 5 clients
+- Up to 10 invoices/month
+- Up to 20 expenses/month
+- Basic reports
+- GigLedger branding on invoices
 
-### Pro Tier (Configurable at Launch)
-- [Pro feature 1]
-- [Pro feature 2]
-- [Pro feature 3]
-- [Pro feature 4]
+### Pro Tier ($9.99/month or $79.99/year)
+- Unlimited clients
+- Unlimited invoices
+- Unlimited expenses
+- Advanced reports & exports
+- Remove GigLedger branding
+- Priority support
+- Custom invoice templates (post-MVP)
 
-Pricing TBD (documented in `08_monetization_and_pricing.md`).
+Pricing details in `08_monetization_and_pricing.md`.
 
 ---
 
 ## 6. Technical Constraints
 
 ### Firestore
-- [Constraint 1]
-- [Constraint 2]
-- [Constraint 3]
+- User data stored under `users/{uid}` document
+- Invoices, expenses, clients as subcollections
+- Denormalized client info on invoices for read performance
+- Security rules enforce user-only access
 
-### Stripe (if applicable)
-- [Constraint 1]
-- [Constraint 2]
-- [Constraint 3]
+### Stripe (Post-MVP)
+- Will be used for subscription management
+- Payment links for invoice payments (future)
+- All Stripe calls via Cloud Functions
 
-### Flutter, Firebase, Riverpod
-- [Constraint 1]
-- [Constraint 2]
-- [Constraint 3]
+### Flutter + Riverpod
+- Offline-first with Firestore persistence
+- State management via Riverpod providers
+- Feature-based module structure
+- Shared design system in `core/`
 
 ---
 
 ## 7. Acceptance Criteria (High-Level)
 
-- [ ] User can [key action 1]
-- [ ] User can [key action 2]
-- [ ] User can [key action 3]
-- [ ] App runs consistently on [platforms]
+- [ ] User can sign up/sign in and set up business profile
+- [ ] User can create and send an invoice in under 60 seconds
+- [ ] User can add an expense with a photo receipt
+- [ ] User can add/edit/view clients
+- [ ] User can see dashboard with income/expense/profit summary
+- [ ] User can mark invoices as paid
+- [ ] User can view basic reports
+- [ ] App runs consistently on iOS and Android
 - [ ] No sensitive credentials exposed client-side
+- [ ] Free tier limits are enforced
 
 ---
 
 ## 8. MVP Exit Criteria
 
 MVP is considered complete when:
-- All in-scope features are implemented
-- Performance is acceptable on mid-range devices
-- Data accuracy is validated against known test cases
-- App is deployable to [stores/platforms]
+- All in-scope features are implemented and tested
+- Performance is acceptable on mid-range devices (< 3s cold start)
+- Data accuracy is validated (invoice totals, expense sums)
+- App is deployable to App Store and Google Play
+- Core user flows have < 2% crash rate
 
 ---
 
 ## 9. Future Considerations (Not Implemented)
 
-- [Future feature 1]
-- [Future feature 2]
-- [Future feature 3]
-- [Future feature 4]
+- Recurring invoices with auto-send
+- Stripe payment processing for invoices
+- Bank account sync (Plaid integration)
+- OCR receipt scanning
+- Time tracking with project association
+- Multi-currency support
+- Team accounts with permissions
+- AI-powered expense categorization
+- Tax form generation (1099, Schedule C)
 
-These will be addressed in the roadmap.
+These will be addressed in the roadmap (`09_roadmap.md`).

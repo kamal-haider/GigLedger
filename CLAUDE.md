@@ -4,9 +4,9 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-GigLedger is a Flutter, Firebase, Riverpod-based application that All-in-one business manager for freelancers - invoicing, expenses, clients, and time tracking.
+GigLedger is a Flutter, Firebase, Riverpod-based mobile app that helps freelancers manage their business finances - invoicing, expense tracking, client management, and financial insights - all in one place.
 
-**Core Philosophy:** TODO: Define your core philosophy
+**Core Philosophy:** Speed over features. Every action should feel instant. We prioritize simplicity over comprehensiveness, making freelance finances effortless rather than powerful.
 
 ## Claude Skills
 
@@ -22,23 +22,23 @@ This project includes specialized Claude skills in `.claude/skills/` that refere
    - Use for: Any feature implementation, ticket management, checklist updates
 
 2. **architecture-expert**
-   - Deep expertise on [architecture pattern] architecture
-   - [State management] patterns
+   - Deep expertise on Clean Architecture pattern
+   - Riverpod state management patterns
    - Feature module structure and layer responsibilities
    - References: `docs/07_app_architecture.md`
    - Use for: Creating features, understanding architecture, code reviews
 
 3. **schema-expert**
-   - [Database] collections, schemas, and DTOs
-   - Domain model transformations
+   - Firestore collections, schemas, and DTOs
+   - Domain model transformations (Invoice, Expense, Client)
    - Caching strategies and cost control
    - References: `docs/05_data_model_and_schema.md`
    - Use for: Database design, DTOs, query optimization
 
 4. **integration-expert**
-   - [External API] integration via backend proxy
-   - Backend functions patterns and rate limiting
-   - Server-side aggregation strategies
+   - Stripe integration via Cloud Functions (post-MVP)
+   - Firebase Cloud Functions patterns
+   - Email sending for invoices
    - References: `docs/06_integration_spec.md`
    - Use for: Backend integration, API endpoints, data fetching
 
@@ -404,11 +404,12 @@ UI Component → State Provider → Use Case → Repository (Domain)
 ## Critical Architectural Rules
 
 ### Backend Communication
-- **NEVER call Stripe API directly from the client** (if applicable)
-- All external access must be proxied through backend
+- **NEVER call Stripe API directly from the client** (post-MVP payment processing)
+- All external API calls must be proxied through Cloud Functions
 - Client only communicates with:
-  - Firestore (read operations)
-  - Backend Functions (HTTPS endpoints)
+  - Firestore (read/write user-scoped data)
+  - Firebase Storage (receipt image uploads)
+  - Cloud Functions (email sending, Stripe operations)
 
 ### Data Storage Philosophy
 1. Database stores **snapshots and derived insights**, not raw streams
@@ -425,14 +426,13 @@ UI Component → State Provider → Use Case → Repository (Domain)
 ## Database Collections (MVP)
 
 Key collections:
-- `users/{uid}` - User profiles and preferences
-- `[collection1]/{id}` - [Description]
-- `[collection2]/{id}` - [Description]
-- `[collection3]/{id}` - [Description]
-  - [Subcollection 1] - [Description]
-  - [Subcollection 2] - [Description]
+- `users/{uid}` - User profiles, business settings, preferences
+  - `clients/{clientId}` - Client contact info and notes
+  - `invoices/{invoiceId}` - Invoice data with denormalized client info
+  - `expenses/{expenseId}` - Expense records with receipt URLs
+- `invoiceTemplates/{templateId}` - Shared invoice templates (read-only)
 
-All [protected data] is **read-only** for clients. Only user profile data allows writes.
+All user data is scoped to `users/{uid}` and only accessible by that user. Invoice templates are read-only for clients.
 
 ## Documentation Structure
 
@@ -459,10 +459,25 @@ All product decisions live in `docs/` - **this is the source of truth**:
 ## MVP Scope
 
 ### In Scope
-TODO: Define your MVP scope
+- **Authentication**: Google, Apple, Email/Password sign-in
+- **Dashboard**: Income/expense/profit summary, quick actions, recent activity
+- **Invoicing**: Create, send, track invoices with templates (Draft/Sent/Paid/Overdue)
+- **Expenses**: Add expenses with photo receipts, categorization, filtering
+- **Clients**: Client database with contact info, notes, invoice history
+- **Reports**: Basic income vs expense charts, top clients, category breakdown
+- **Settings**: Business profile, currency, tax rate, payment instructions
+- **Freemium**: Free tier (5 clients, 10 invoices/mo) + Pro tier ($9.99/mo)
 
 ### Explicitly Out of Scope (Future Roadmap)
-TODO: Define what is NOT in MVP
+- Recurring invoices
+- In-app payment processing (Stripe checkout)
+- Bank account sync (Plaid)
+- OCR receipt scanning
+- Time tracking
+- Multi-currency per invoice
+- Team/multi-user accounts
+- Estimates/quotes
+- Mileage tracking
 
 ## Development Guidelines
 
@@ -491,8 +506,9 @@ TODO: Define what is NOT in MVP
 
 ### Security
 - No API keys or secrets in client code
-- All [protected data] is read-only for clients
-- Users can only read/write their own profile data
+- All data scoped to authenticated user (`users/{uid}/...`)
+- Users can only read/write their own data (enforced by Firestore rules)
+- Receipt images stored in user-specific Firebase Storage paths
 
 ### Performance
 - Enable database persistence for offline support

@@ -4,38 +4,39 @@
 **GigLedger**
 
 ## One-Line Pitch
-<!-- TODO: Write a one-sentence description that captures the essence of your product -->
-GigLedger is a [type of product] that helps [target users] [achieve goal] — through [unique approach].
+GigLedger is an all-in-one business manager that helps freelancers take control of their finances — through unified invoicing, expense tracking, client management, and real-time financial insights in a single mobile-first app.
 
 ---
 
 ## Vision
 
-<!-- TODO: Describe the gap or problem in the market -->
-[Describe the current state of the market/problem space]
+Freelancers and solopreneurs are running full businesses from their phones, yet most still juggle 5+ apps for invoicing, expenses, time tracking, and tax prep. They piece together spreadsheets, lose receipts, chase late payments, and dread tax season.
 
 GigLedger exists to bridge that gap.
 
-Our vision is to become the **go-to [solution type]** for [target audience] who want to:
-- [Key capability 1]
-- [Key capability 2]
-- [Key capability 3]
-- [Future capability]
+Our vision is to become the **go-to business command center** for freelancers who want to:
+- Create and send professional invoices in under 60 seconds
+- Track expenses with photo receipts and auto-categorization
+- Manage clients and communication history in one place
+- See real-time profit/loss and tax estimates at a glance
+- Eventually, automate tax prep and payment reminders
 
 ---
 
 ## Problem Statement
 
 Current products fall into these categories:
-1. [Category 1] ([limitation])
-2. [Category 2] ([limitation])
-3. [Category 3] ([limitation])
+1. **Full accounting software** (QuickBooks, FreshBooks) - Overkill, expensive, steep learning curve
+2. **Invoice-only apps** (Invoice Ninja, Wave) - Single-purpose, no expense/client integration
+3. **Spreadsheets** (Google Sheets) - Manual, error-prone, no mobile-friendly UX
+4. **Generic CRMs** (HubSpot, Notion) - Not designed for freelancer financials
 
-Users who want [specific outcome] are left:
-- [Pain point 1]
-- [Pain point 2]
-- [Pain point 3]
-- [Pain point 4]
+Users who want a simple, integrated freelance business tool are left:
+- Switching between 3-5 apps daily
+- Manually entering data multiple times
+- Missing expense deductions (losing $2,000+/year on average)
+- Chasing late invoices without automated reminders
+- Scrambling at tax time to reconcile records
 
 This is fragmented, slow, and unsatisfying.
 
@@ -44,89 +45,99 @@ This is fragmented, slow, and unsatisfying.
 ## Solution
 
 GigLedger provides:
-- [Solution aspect 1]
-- [Solution aspect 2]
-- [Solution aspect 3]
-- [Solution aspect 4]
+- **Unified dashboard** showing income, expenses, and profit in real-time
+- **Quick invoicing** with templates, recurring invoices, and payment tracking
+- **Smart expense capture** via photo receipts with OCR and auto-categorization
+- **Client profiles** with contact info, project history, and notes
+- **Tax-ready reports** with quarterly estimates and exportable summaries
 
-We prioritize **[key value] over [secondary concern]** and **[key value] over [secondary concern]**.
+We prioritize **simplicity over comprehensiveness** and **speed over customization**.
 
 ---
 
 ## Target Audience
 
 ### Primary
-- [Primary audience description]
-- [Specific characteristics]
-- [Key needs]
+- **Solo freelancers** earning $30K-$200K/year
+- Service providers: designers, developers, writers, consultants, photographers
+- Tech-comfortable but not accountants
+- Want to spend less than 30 min/week on admin
 
 ### Secondary
-- [Secondary audience 1]
-- [Secondary audience 2]
-- [Secondary audience 3]
+- Part-time freelancers with side hustles
+- Content creators and coaches
+- Small service agencies (2-5 people)
 
 ---
 
 ## Core Product Pillars
 
-1. **[Pillar 1 Name]**
-   - [Specific capability]
-   - [Specific capability]
+1. **Invoicing & Payments**
+   - Create professional invoices in under 60 seconds
+   - Track payment status and send reminders
+   - Accept payments via Stripe integration
 
-2. **[Pillar 2 Name]**
-   - [Specific capability]
-   - [Specific capability]
+2. **Expense Management**
+   - Photo receipt capture with OCR
+   - Auto-categorization by tax category
+   - Mileage tracking (future)
 
-3. **[Pillar 3 Name]**
-   - [Specific capability]
-   - [Specific capability]
+3. **Client Management**
+   - Contact database with project history
+   - Notes and communication log
+   - Quick access from invoice creation
 
-4. **[Pillar 4 Name]**
-   - [Specific capability]
+4. **Financial Insights**
+   - Real-time profit/loss dashboard
+   - Quarterly tax estimates
+   - Income trends and client breakdown
 
 ---
 
 ## Differentiation
 
-| Feature | GigLedger | Competitor A | Competitor B |
-|---------|------------------|--------------|--------------|
-| [Feature 1] | ? | ? | ? |
-| [Feature 2] | ? | ? | ? |
-| [Feature 3] | ? | ? | ? |
-| [Feature 4] | ? | ? | ? |
+| Feature | GigLedger | QuickBooks | Wave | Bonsai |
+|---------|-----------|------------|------|--------|
+| Mobile-first UX | ✅ Native | ❌ Web-first | ⚠️ Basic | ⚠️ Basic |
+| Invoice + Expense + Client | ✅ Unified | ✅ But complex | ⚠️ Separate | ✅ |
+| Under 60s invoice | ✅ | ❌ | ⚠️ | ⚠️ |
+| Free tier | ✅ Generous | ❌ | ✅ | ⚠️ Limited |
+| Tax estimates | ✅ Built-in | ✅ | ❌ | ⚠️ |
+| Learning curve | ✅ 5 min | ❌ Hours | ⚠️ 30 min | ⚠️ 30 min |
 
 ---
 
 ## Platform Support
 
-<!-- TODO: List supported platforms -->
-- [ ] iOS
-- [ ] Android
-- [ ] Web
-- [ ] Desktop (macOS/Windows/Linux)
+- [x] iOS
+- [x] Android
+- [ ] Web (post-MVP)
+- [ ] Desktop (future consideration)
 
-Built with Flutter, Firebase, Riverpod for [key technical benefits].
+Built with Flutter, Firebase, Riverpod for cross-platform consistency and rapid iteration.
 
 ---
 
 ## Long-Term Vision
 
 GigLedger evolves into:
-- [Future state 1]
-- [Future state 2]
-- [Future state 3]
+- The single app freelancers open every day to run their business
+- Automated bookkeeping with bank sync and reconciliation
+- AI-powered insights (optimal pricing, client health scores)
+- Direct tax filing integration
 
-We are not trying to [what we're NOT doing].
-We are making [existing thing] **[better in this way]**.
+We are not trying to replace enterprise accounting software.
+We are making freelance finances **effortless and anxiety-free**.
 
 ---
 
 ## Non-Goals
 
 Things GigLedger will NOT become:
-- [Non-goal 1]
-- [Non-goal 2]
-- [Non-goal 3]
+- A full double-entry accounting system
+- A project management tool (no Gantt charts, sprints)
+- A freelance marketplace or job board
+- A general-purpose CRM for sales teams
 
 ---
 
