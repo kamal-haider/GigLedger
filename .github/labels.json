@@ -1,0 +1,208 @@
+{
+  "labels": [
+    {
+      "name": "ready-to-work",
+      "description": "Can be worked on immediately - no blockers",
+      "color": "0E8A16"
+    },
+    {
+      "name": "blocked",
+      "description": "Blocked by other issues or dependencies",
+      "color": "B60205"
+    },
+    {
+      "name": "blocked-by-pr",
+      "description": "Blocked by PR merge",
+      "color": "D93F0B"
+    },
+    {
+      "name": "post-mvp",
+      "description": "Pick up after core MVP features are complete",
+      "color": "E99695"
+    },
+    {
+      "name": "in-progress",
+      "description": "Currently being worked on",
+      "color": "FFA500"
+    },
+    {
+      "name": "user-config",
+      "description": "Requires user configuration (not code)",
+      "color": "FBCA04"
+    },
+    {
+      "name": "bug",
+      "description": "Something isn't working",
+      "color": "d73a4a"
+    },
+    {
+      "name": "enhancement",
+      "description": "New feature or request",
+      "color": "a2eeef"
+    },
+    {
+      "name": "documentation",
+      "description": "Improvements or additions to documentation",
+      "color": "0075ca"
+    },
+    {
+      "name": "good first issue",
+      "description": "Good for newcomers",
+      "color": "7057ff"
+    },
+    {
+      "name": "help wanted",
+      "description": "Extra attention is needed",
+      "color": "008672"
+    },
+    {
+      "name": "question",
+      "description": "Further information is requested",
+      "color": "d876e3"
+    },
+    {
+      "name": "duplicate",
+      "description": "This issue or pull request already exists",
+      "color": "cfd3d7"
+    },
+    {
+      "name": "invalid",
+      "description": "This doesn't seem right",
+      "color": "e4e669"
+    },
+    {
+      "name": "wontfix",
+      "description": "This will not be worked on",
+      "color": "ffffff"
+    },
+    {
+      "name": "frontend",
+      "description": "Frontend UI work",
+      "color": "1D76DB"
+    },
+    {
+      "name": "backend",
+      "description": "Backend work",
+      "color": "0052CC"
+    },
+    {
+      "name": "foundation",
+      "description": "Project foundation / bootstrap work",
+      "color": "0E8A16"
+    },
+    {
+      "name": "ui",
+      "description": "UI screens/components",
+      "color": "1D76DB"
+    },
+    {
+      "name": "core-feature",
+      "description": "Core/flagship feature",
+      "color": "5319E7"
+    },
+    {
+      "name": "analytics",
+      "description": "Analytics/charts",
+      "color": "5319E7"
+    },
+    {
+      "name": "pro-feature",
+      "description": "Pro-only feature",
+      "color": "5319E7"
+    },
+    {
+      "name": "monetization",
+      "description": "Monetization",
+      "color": "E99695"
+    },
+    {
+      "name": "subscription",
+      "description": "Subscriptions/paywall",
+      "color": "E99695"
+    },
+    {
+      "name": "performance",
+      "description": "Performance improvements",
+      "color": "0E8A16"
+    },
+    {
+      "name": "optimization",
+      "description": "Optimization",
+      "color": "0E8A16"
+    },
+    {
+      "name": "launch",
+      "description": "Launch preparation",
+      "color": "000000"
+    },
+    {
+      "name": "release",
+      "description": "Release",
+      "color": "000000"
+    },
+    {
+      "name": "testing",
+      "description": "Test coverage and quality",
+      "color": "6f42c1"
+    },
+    {
+      "name": "security",
+      "description": "Security-related issues",
+      "color": "B60205"
+    },
+    {
+      "name": "data-model",
+      "description": "Data model/schema",
+      "color": "BFDADC"
+    },
+    {
+      "name": "navigation",
+      "description": "Routing/navigation",
+      "color": "5319E7"
+    }
+  ],
+  "technology_labels": [
+    {
+      "name": "flutter",
+      "description": "Flutter mobile/web implementation",
+      "color": "1D76DB"
+    },
+    {
+      "name": "firebase",
+      "description": "Firebase setup and integration",
+      "color": "FF6F00"
+    },
+    {
+      "name": "firestore",
+      "description": "Firestore schema/rules/data",
+      "color": "FF6F00"
+    },
+    {
+      "name": "firebase-functions",
+      "description": "Firebase Cloud Functions",
+      "color": "FF6F00"
+    }
+  ],
+  "feature_labels_template": [
+    {
+      "name": "home",
+      "description": "Home screen",
+      "color": "C5DEF5"
+    },
+    {
+      "name": "auth",
+      "description": "Authentication",
+      "color": "C5DEF5"
+    },
+    {
+      "name": "onboarding",
+      "description": "Onboarding flow",
+      "color": "C5DEF5"
+    },
+    {
+      "name": "profile",
+      "description": "Profile/settings",
+      "color": "C5DEF5"
+    }
+  ]
+}
