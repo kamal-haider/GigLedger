@@ -61,13 +61,22 @@ class ClientDTO {
     };
   }
 
+  /// Converts DTO to domain model.
+  /// Throws [FormatException] if required fields (id, name) are missing.
   Client toDomain() {
+    if (id == null || id!.isEmpty) {
+      throw const FormatException('Client ID is required');
+    }
+    if (name == null || name!.isEmpty) {
+      throw const FormatException('Client name is required');
+    }
+
     final now = DateTime.now();
     return Client(
-      id: id ?? '',
+      id: id!,
       userId: userId ?? '',
-      name: name ?? '',
-      email: email ?? '',
+      name: name!,
+      email: email ?? '', // Email is optional
       phone: phone,
       address: address,
       notes: notes,

@@ -8,8 +8,9 @@ abstract class IClientRepository {
   /// Get a client by ID
   Future<Client?> getById(String id);
 
-  /// Search clients by name or email
-  Future<List<Client>> search(String query);
+  // Note: Client-side search is performed in filteredClientsProvider
+  // to avoid Firestore costs and enable instant filtering.
+  // Server-side search can be added later if needed for large client lists.
 
   /// Watch all clients (real-time updates)
   Stream<List<Client>> watchAll();

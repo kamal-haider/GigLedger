@@ -36,18 +36,6 @@ class ClientRepositoryImpl implements IClientRepository {
   }
 
   @override
-  Future<List<Client>> search(String query) async {
-    try {
-      final dtos = await _dataSource.search(query);
-      return dtos.map((dto) => dto.toDomain()).toList();
-    } on AuthException catch (e) {
-      throw AuthFailure(e.message, code: e.code);
-    } on ServerException catch (e) {
-      throw ServerFailure(e.message, code: e.code);
-    }
-  }
-
-  @override
   Stream<List<Client>> watchAll() {
     return _dataSource.watchAll().map(
         (dtos) => dtos.map((dto) => dto.toDomain()).toList());

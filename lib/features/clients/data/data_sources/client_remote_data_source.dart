@@ -12,9 +12,6 @@ abstract class ClientRemoteDataSource {
   /// Get client by ID
   Future<ClientDTO?> getById(String id);
 
-  /// Search clients by name or email
-  Future<List<ClientDTO>> search(String query);
-
   /// Watch all clients (real-time)
   Stream<List<ClientDTO>> watchAll();
 
@@ -78,22 +75,6 @@ class ClientRemoteDataSourceImpl implements ClientRemoteDataSource {
       return ClientDTO.fromJson(doc.data()!, doc.id);
     } catch (e) {
       throw ServerException('Failed to get client: $e', code: 'firestore-read-error');
-    }
-  }
-
-  @override
-  Future<List<ClientDTO>> search(String query) async {
-    try {
-      final lowerQuery = query.toLowerCase();
-      final snapshot = await _clientsCollection.get();
-      return snapshot.docs
-          .map((doc) => ClientDTO.fromJson(doc.data(), doc.id))
-          .where((client) =>
-              (client.name?.toLowerCase().contains(lowerQuery) ?? false) ||
-              (client.email?.toLowerCase().contains(lowerQuery) ?? false))
-          .toList();
-    } catch (e) {
-      throw ServerException('Failed to search clients: $e', code: 'firestore-read-error');
     }
   }
 
