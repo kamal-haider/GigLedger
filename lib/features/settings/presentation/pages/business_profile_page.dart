@@ -31,20 +31,18 @@ class _BusinessProfilePageState extends ConsumerState<BusinessProfilePage> {
     _businessAddressController = TextEditingController();
     _taxRateController = TextEditingController();
     _paymentInstructionsController = TextEditingController();
-
-    // Use addPostFrameCallback to safely initialize after first build
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      _tryInitializeFromProfile();
-    });
   }
 
-  /// Attempts to initialize form fields from profile data
-  void _tryInitializeFromProfile() {
-    if (_isInitialized) return;
-    final profile = ref.read(businessProfileProvider);
-    if (profile != null) {
-      _initializeFromProfile();
-      _isInitialized = true;
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    // Initialize form fields once when profile data is available
+    if (!_isInitialized) {
+      final profile = ref.read(businessProfileProvider);
+      if (profile != null) {
+        _initializeFromProfile();
+        _isInitialized = true;
+      }
     }
   }
 
@@ -146,8 +144,28 @@ class _BusinessProfilePageState extends ConsumerState<BusinessProfilePage> {
 
   Future<void> _handleLogoRemove() async {
     final notifier = ref.read(businessProfileNotifierProvider.notifier);
-    // Use null to clear the logo (consistent with _trimOrNull pattern)
-    await notifier.updateBusinessLogo(null);
+    try {
+      // Use null to clear the logo (consistent with _trimOrNull pattern)
+      await notifier.updateBusinessLogo(null);
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Logo removed'),
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(_getErrorMessage(e)),
+            behavior: SnackBarBehavior.floating,
+            backgroundColor: Theme.of(context).colorScheme.error,
+          ),
+        );
+      }
+    }
   }
 
   @override
@@ -155,15 +173,6 @@ class _BusinessProfilePageState extends ConsumerState<BusinessProfilePage> {
     final theme = Theme.of(context);
     final profile = ref.watch(businessProfileProvider);
     final updateState = ref.watch(businessProfileNotifierProvider);
-
-    // Handle async profile loading - schedule initialization for next frame
-    // to avoid setState during build
-    if (!_isInitialized && profile != null) {
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        _tryInitializeFromProfile();
-      });
-    }
-
     final isLoading = updateState.isLoading;
 
     return Scaffold(
