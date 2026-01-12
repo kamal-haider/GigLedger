@@ -22,6 +22,7 @@ class _BusinessProfilePageState extends ConsumerState<BusinessProfilePage> {
   late TextEditingController _paymentInstructionsController;
   String _selectedCurrency = 'USD';
   bool _hasChanges = false;
+  bool _isInitialized = false;
 
   @override
   void initState() {
@@ -30,6 +31,19 @@ class _BusinessProfilePageState extends ConsumerState<BusinessProfilePage> {
     _businessAddressController = TextEditingController();
     _taxRateController = TextEditingController();
     _paymentInstructionsController = TextEditingController();
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    // Initialize form fields once when profile data is available
+    if (!_isInitialized) {
+      final profile = ref.read(businessProfileProvider);
+      if (profile != null) {
+        _initializeFromProfile();
+        _isInitialized = true;
+      }
+    }
   }
 
   @override
@@ -58,29 +72,47 @@ class _BusinessProfilePageState extends ConsumerState<BusinessProfilePage> {
     }
   }
 
+  /// Convert empty/whitespace-only strings to null for proper storage
+  String? _trimOrNull(String text) {
+    final trimmed = text.trim();
+    return trimmed.isEmpty ? null : trimmed;
+  }
+
   Future<void> _saveChanges() async {
     if (!_formKey.currentState!.validate()) return;
 
     final notifier = ref.read(businessProfileNotifierProvider.notifier);
     final taxRate = double.tryParse(_taxRateController.text) ?? 0.0;
 
-    await notifier.updateFullProfile(
-      businessName: _businessNameController.text.trim(),
-      businessAddress: _businessAddressController.text.trim(),
-      currency: _selectedCurrency,
-      taxRate: taxRate,
-      paymentInstructions: _paymentInstructionsController.text.trim(),
-    );
-
-    setState(() => _hasChanges = false);
-
-    if (mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Profile updated successfully'),
-          behavior: SnackBarBehavior.floating,
-        ),
+    try {
+      await notifier.updateFullProfile(
+        businessName: _trimOrNull(_businessNameController.text),
+        businessAddress: _trimOrNull(_businessAddressController.text),
+        currency: _selectedCurrency,
+        taxRate: taxRate,
+        paymentInstructions: _trimOrNull(_paymentInstructionsController.text),
       );
+
+      setState(() => _hasChanges = false);
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Profile updated successfully'),
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Failed to save: ${e.toString()}'),
+            behavior: SnackBarBehavior.floating,
+            backgroundColor: Theme.of(context).colorScheme.error,
+          ),
+        );
+      }
     }
   }
 
@@ -105,12 +137,10 @@ class _BusinessProfilePageState extends ConsumerState<BusinessProfilePage> {
     final profile = ref.watch(businessProfileProvider);
     final updateState = ref.watch(businessProfileNotifierProvider);
 
-    // Initialize form fields on first build
-    if (profile != null && _businessNameController.text.isEmpty) {
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        _initializeFromProfile();
-        setState(() {});
-      });
+    // Initialize form fields when profile becomes available (for async loading)
+    if (!_isInitialized && profile != null) {
+      _initializeFromProfile();
+      _isInitialized = true;
     }
 
     final isLoading = updateState.isLoading;
