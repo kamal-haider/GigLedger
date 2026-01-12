@@ -1,0 +1,81 @@
+name: Feature Request
+description: Request a new feature or enhancement
+title: "[Feature]: "
+labels: ["enhancement", "ready-to-work"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for suggesting a new feature for GigLedger!
+
+  - type: dropdown
+    id: feature-area
+    attributes:
+      label: Feature Area
+      description: Which part of the app does this relate to?
+      options:
+        - Auth
+        - Dashboard
+        - Invoices
+        - Expenses
+        - Clients
+        - Reports
+        - Settings
+        - Onboarding
+        - Navigation
+        - Other
+    validations:
+      required: true
+
+  - type: textarea
+    id: description
+    attributes:
+      label: Description
+      description: Clear description of the feature
+      placeholder: Describe the feature you'd like to see...
+    validations:
+      required: true
+
+  - type: textarea
+    id: acceptance-criteria
+    attributes:
+      label: Acceptance Criteria
+      description: What needs to be true for this to be complete?
+      placeholder: |
+        - [ ] Criterion 1
+        - [ ] Criterion 2
+        - [ ] Criterion 3
+    validations:
+      required: true
+
+  - type: textarea
+    id: technical-notes
+    attributes:
+      label: Technical Notes
+      description: Any implementation details or constraints
+      placeholder: |
+        - Use X model from domain layer
+        - Store in Firestore at path...
+        - Consider performance for...
+
+  - type: textarea
+    id: dependencies
+    attributes:
+      label: Dependencies
+      description: What issues must be completed first?
+      placeholder: |
+        Blocked by: #X, #Y
+
+        Or leave empty if no dependencies.
+
+  - type: dropdown
+    id: priority
+    attributes:
+      label: Priority
+      options:
+        - Low - Nice to have
+        - Medium - Should have
+        - High - Must have for MVP
+        - Critical - Blocker
+    validations:
+      required: true

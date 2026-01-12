@@ -16,7 +16,7 @@ This project includes specialized Claude skills in `.claude/skills/` that refere
 
 1. **gigledger-dev** (Main Orchestrator)
    - Coordinates all development with documentation as source of truth
-   - Manages GitHub project tickets from https://github.com//projects/1
+   - Manages GitHub project tickets from https://github.com/users/kamal-haider/projects/6
    - Updates launch checklist in `docs/10_launch_checklist.md`
    - Enforces architectural constraints and code standards
    - Use for: Any feature implementation, ticket management, checklist updates
@@ -76,7 +76,7 @@ When choosing which GitHub issues to work on, **always reference `docs/11_ticket
 
 ```bash
 # Method 1: Update in GitHub Projects board
-# Visit: https://github.com//projects/1
+# Visit: https://github.com/users/kamal-haider/projects/6
 # Drag issue to "In Progress" column
 
 # Method 2: Add label and comment
