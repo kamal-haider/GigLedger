@@ -31,18 +31,20 @@ class _BusinessProfilePageState extends ConsumerState<BusinessProfilePage> {
     _businessAddressController = TextEditingController();
     _taxRateController = TextEditingController();
     _paymentInstructionsController = TextEditingController();
+
+    // Use addPostFrameCallback to safely initialize after first build
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _tryInitializeFromProfile();
+    });
   }
 
-  @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
-    // Initialize form fields once when profile data is available
-    if (!_isInitialized) {
-      final profile = ref.read(businessProfileProvider);
-      if (profile != null) {
-        _initializeFromProfile();
-        _isInitialized = true;
-      }
+  /// Attempts to initialize form fields from profile data
+  void _tryInitializeFromProfile() {
+    if (_isInitialized) return;
+    final profile = ref.read(businessProfileProvider);
+    if (profile != null) {
+      _initializeFromProfile();
+      _isInitialized = true;
     }
   }
 
@@ -107,7 +109,7 @@ class _BusinessProfilePageState extends ConsumerState<BusinessProfilePage> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Failed to save: ${e.toString()}'),
+            content: Text(_getErrorMessage(e)),
             behavior: SnackBarBehavior.floating,
             backgroundColor: Theme.of(context).colorScheme.error,
           ),
@@ -116,8 +118,24 @@ class _BusinessProfilePageState extends ConsumerState<BusinessProfilePage> {
     }
   }
 
+  /// Returns a user-friendly error message based on error type
+  String _getErrorMessage(Object error) {
+    final errorStr = error.toString().toLowerCase();
+    if (errorStr.contains('network') || errorStr.contains('connection')) {
+      return 'Network error. Please check your internet connection.';
+    }
+    if (errorStr.contains('permission') || errorStr.contains('denied')) {
+      return 'Permission denied. Please sign in again.';
+    }
+    if (errorStr.contains('auth')) {
+      return 'Authentication error. Please sign in again.';
+    }
+    return 'Failed to save profile. Please try again.';
+  }
+
   Future<void> _handleLogoUpload() async {
-    // TODO: Implement image picker and Firebase Storage upload
+    // TODO(#38): Implement image picker and Firebase Storage upload
+    // See: https://github.com/kamal-haider/GigLedger/issues/38
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(
         content: Text('Logo upload coming soon'),
@@ -128,7 +146,8 @@ class _BusinessProfilePageState extends ConsumerState<BusinessProfilePage> {
 
   Future<void> _handleLogoRemove() async {
     final notifier = ref.read(businessProfileNotifierProvider.notifier);
-    await notifier.updateBusinessLogo('');
+    // Use null to clear the logo (consistent with _trimOrNull pattern)
+    await notifier.updateBusinessLogo(null);
   }
 
   @override
@@ -137,10 +156,12 @@ class _BusinessProfilePageState extends ConsumerState<BusinessProfilePage> {
     final profile = ref.watch(businessProfileProvider);
     final updateState = ref.watch(businessProfileNotifierProvider);
 
-    // Initialize form fields when profile becomes available (for async loading)
+    // Handle async profile loading - schedule initialization for next frame
+    // to avoid setState during build
     if (!_isInitialized && profile != null) {
-      _initializeFromProfile();
-      _isInitialized = true;
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        _tryInitializeFromProfile();
+      });
     }
 
     final isLoading = updateState.isLoading;
@@ -248,7 +269,7 @@ class _BusinessProfilePageState extends ConsumerState<BusinessProfilePage> {
                     ),
                     inputFormatters: [
                       FilteringTextInputFormatter.allow(
-                        RegExp(r'^\d+\.?\d{0,2}'),
+                        RegExp(r'^\d*\.?\d{0,2}'),
                       ),
                     ],
                     validator: (value) {

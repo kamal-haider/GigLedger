@@ -107,7 +107,8 @@ class BusinessProfileNotifier extends StateNotifier<AsyncValue<void>> {
     }
   }
 
-  Future<void> updateBusinessLogo(String logoUrl) async {
+  /// Update business logo. Pass null to clear the logo.
+  Future<void> updateBusinessLogo(String? logoUrl) async {
     final profile = _currentProfile;
     if (profile == null) return;
     state = const AsyncValue.loading();
