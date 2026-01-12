@@ -1,5 +1,8 @@
 import 'package:flutter/foundation.dart';
 
+/// Sentinel value for copyWith to distinguish between "not provided" and "set to null"
+const _undefined = Object();
+
 /// User profile containing business information and preferences
 @immutable
 class UserProfile {
@@ -35,29 +38,42 @@ class UserProfile {
   /// Display name for UI (business name or email)
   String get displayNameOrEmail => businessName ?? displayName ?? email;
 
+  /// Creates a copy with updated fields.
+  /// Use explicit null to clear nullable fields (e.g., businessLogo: null).
+  /// Omit a parameter to keep its current value.
   UserProfile copyWith({
     String? id,
     String? email,
-    String? displayName,
-    String? businessName,
-    String? businessLogo,
-    String? businessAddress,
+    Object? displayName = _undefined,
+    Object? businessName = _undefined,
+    Object? businessLogo = _undefined,
+    Object? businessAddress = _undefined,
     String? currency,
     double? taxRate,
-    String? paymentInstructions,
+    Object? paymentInstructions = _undefined,
     DateTime? createdAt,
     DateTime? updatedAt,
   }) {
     return UserProfile(
       id: id ?? this.id,
       email: email ?? this.email,
-      displayName: displayName ?? this.displayName,
-      businessName: businessName ?? this.businessName,
-      businessLogo: businessLogo ?? this.businessLogo,
-      businessAddress: businessAddress ?? this.businessAddress,
+      displayName: displayName == _undefined
+          ? this.displayName
+          : displayName as String?,
+      businessName: businessName == _undefined
+          ? this.businessName
+          : businessName as String?,
+      businessLogo: businessLogo == _undefined
+          ? this.businessLogo
+          : businessLogo as String?,
+      businessAddress: businessAddress == _undefined
+          ? this.businessAddress
+          : businessAddress as String?,
       currency: currency ?? this.currency,
       taxRate: taxRate ?? this.taxRate,
-      paymentInstructions: paymentInstructions ?? this.paymentInstructions,
+      paymentInstructions: paymentInstructions == _undefined
+          ? this.paymentInstructions
+          : paymentInstructions as String?,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
     );

@@ -9,25 +9,29 @@ final businessProfileProvider = Provider<UserProfile?>((ref) {
   return authState.valueOrNull;
 });
 
-/// List of supported currencies
+/// List of supported currencies (code, name, symbol)
 const supportedCurrencies = [
-  ('USD', 'US Dollar', r'$'),
+  ('USD', 'US Dollar', '\$'),
   ('EUR', 'Euro', '\u20AC'),
   ('GBP', 'British Pound', '\u00A3'),
-  ('CAD', 'Canadian Dollar', r'C$'),
-  ('AUD', 'Australian Dollar', r'A$'),
+  ('CAD', 'Canadian Dollar', 'C\$'),
+  ('AUD', 'Australian Dollar', 'A\$'),
   ('JPY', 'Japanese Yen', '\u00A5'),
   ('CHF', 'Swiss Franc', 'CHF'),
   ('INR', 'Indian Rupee', '\u20B9'),
 ];
 
 /// Business profile notifier for updates
+/// Uses Ref to read fresh profile data on each operation to avoid stale state
 class BusinessProfileNotifier extends StateNotifier<AsyncValue<void>> {
-  BusinessProfileNotifier(this._authNotifier, this._currentProfile)
+  BusinessProfileNotifier(this._ref, this._authNotifier)
       : super(const AsyncValue.data(null));
 
+  final Ref _ref;
   final AuthNotifier _authNotifier;
-  final UserProfile? _currentProfile;
+
+  /// Gets the current profile fresh from the provider
+  UserProfile? get _currentProfile => _ref.read(businessProfileProvider);
 
   Future<void> updateBusinessName(String name) async {
     final profile = _currentProfile;
@@ -137,12 +141,12 @@ class BusinessProfileNotifier extends StateNotifier<AsyncValue<void>> {
     try {
       await _authNotifier.updateProfile(
         profile.copyWith(
-          businessName: businessName ?? profile.businessName,
-          businessAddress: businessAddress ?? profile.businessAddress,
+          businessName: businessName,
+          businessAddress: businessAddress,
           currency: currency ?? profile.currency,
           taxRate: taxRate ?? profile.taxRate,
-          paymentInstructions: paymentInstructions ?? profile.paymentInstructions,
-          businessLogo: businessLogo ?? profile.businessLogo,
+          paymentInstructions: paymentInstructions,
+          businessLogo: businessLogo,
           updatedAt: DateTime.now(),
         ),
       );
@@ -158,6 +162,5 @@ class BusinessProfileNotifier extends StateNotifier<AsyncValue<void>> {
 final businessProfileNotifierProvider =
     StateNotifierProvider<BusinessProfileNotifier, AsyncValue<void>>((ref) {
   final authNotifier = ref.watch(authNotifierProvider.notifier);
-  final currentProfile = ref.watch(businessProfileProvider);
-  return BusinessProfileNotifier(authNotifier, currentProfile);
+  return BusinessProfileNotifier(ref, authNotifier);
 });
