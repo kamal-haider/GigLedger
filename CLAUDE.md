@@ -142,6 +142,74 @@ git push -u origin feature/your-feature-name
 6. **Address feedback** by pushing new commits to same branch
 7. **Merge after approval** - maintainer will merge
 
+### Multi-PR Feature Development
+
+For complex features that require multiple PRs, use this workflow to enable parallel development while maintaining quality gates:
+
+**Key Principles:**
+- PRs can be merged into feature branches **without user review**
+- Only PRs from feature branches to `main` require **user UAT approval**
+- Features don't go into `main` until ready for MVP validation
+
+**Workflow:**
+
+1. **Create main feature branch** from `main`
+   ```bash
+   git checkout -b feature/invoicing
+   git push -u origin feature/invoicing
+   ```
+
+2. **Create sub-branches for incremental work**
+   ```bash
+   # From feature/invoicing, create sub-branches
+   git checkout -b feature/invoicing-domain
+   git checkout -b feature/invoicing-data
+   git checkout -b feature/invoicing-ui
+   ```
+
+3. **Create PRs targeting the feature branch** (not main)
+   ```bash
+   # PR targets feature/invoicing, not main
+   gh pr create --base feature/invoicing --title "Add invoice domain models"
+   ```
+
+4. **Merge sub-PRs without user review**
+   - These can be merged autonomously
+   - Run `flutter analyze` before merging
+   - Keep the feature branch up to date
+
+5. **When feature is complete, create PR to main**
+   ```bash
+   gh pr create --base main --title "feat: Implement Invoicing Feature"
+   ```
+   - This PR requires **user UAT approval**
+   - Summarize all changes from sub-PRs
+   - Include test plan for end-to-end validation
+
+**Using Git Worktrees for Parallel Development:**
+
+For developing multiple features simultaneously:
+
+```bash
+# Create worktrees for parallel feature development
+git worktree add ../GigLedger-clients feature/clients
+git worktree add ../GigLedger-expenses feature/expenses
+git worktree add ../GigLedger-settings feature/settings
+
+# Work in each worktree independently
+cd ../GigLedger-clients
+# ... make changes, commit, push, create PR
+
+# Clean up worktrees when done
+git worktree remove ../GigLedger-clients
+```
+
+**Review Gates Summary:**
+| PR Target | Review Required | Who Merges |
+|-----------|-----------------|------------|
+| Feature branch | No | Developer/Claude |
+| `main` | Yes (UAT) | User after testing |
+
 ### Merging a PR (Standard Process)
 
 When asked to merge a PR, follow this complete process:
