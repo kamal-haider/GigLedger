@@ -2,29 +2,44 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../features/auth/application/providers/auth_providers.dart';
+import '../features/auth/presentation/pages/login_page.dart';
+
 /// Router provider for the app
 final routerProvider = Provider<GoRouter>((ref) {
+  final authState = ref.watch(authNotifierProvider);
+
   return GoRouter(
-    initialLocation: '/',
+    initialLocation: '/login',
+    redirect: (context, state) {
+      final isLoggedIn = authState.valueOrNull != null;
+      final isLoggingIn = state.matchedLocation == '/login';
+
+      // If not logged in and not on login page, redirect to login
+      if (!isLoggedIn && !isLoggingIn) {
+        return '/login';
+      }
+
+      // If logged in and on login page, redirect to dashboard
+      if (isLoggedIn && isLoggingIn) {
+        return '/dashboard';
+      }
+
+      return null;
+    },
     routes: [
-      GoRoute(
-        path: '/',
-        name: 'home',
-        builder: (context, state) => const _PlaceholderScreen(
-          title: 'GigLedger',
-          message: 'Welcome to GigLedger!\nYour freelance business manager.',
-        ),
-      ),
       // Auth routes
       GoRoute(
         path: '/login',
         name: 'login',
-        builder: (context, state) => const _PlaceholderScreen(
-          title: 'Login',
-          message: 'Login screen coming soon',
-        ),
+        builder: (context, state) => const LoginPage(),
       ),
       // Dashboard routes
+      GoRoute(
+        path: '/',
+        name: 'home',
+        redirect: (context, state) => '/dashboard',
+      ),
       GoRoute(
         path: '/dashboard',
         name: 'dashboard',
