@@ -142,6 +142,103 @@ git push -u origin feature/your-feature-name
 6. **Address feedback** by pushing new commits to same branch
 7. **Merge after approval** - maintainer will merge
 
+### Multi-PR Feature Development
+
+For complex features that require multiple PRs, use this workflow to enable parallel development while maintaining quality gates:
+
+**Key Principles:**
+- PRs can be merged into feature branches **without user review**
+- Only PRs from feature branches to `main` require **user UAT approval**
+- Features don't go into `main` until ready for MVP validation
+
+**Workflow:**
+
+1. **Create main feature branch** from `main`
+   ```bash
+   git checkout main && git pull
+   git checkout -b feature/invoicing
+   git push -u origin feature/invoicing
+   ```
+
+2. **Create sub-branches for incremental work**
+   ```bash
+   # First, switch to the feature branch
+   git checkout feature/invoicing
+   # Then create sub-branches from it
+   git checkout -b feature/invoicing-domain
+   # (repeat for other sub-branches)
+   git checkout feature/invoicing
+   git checkout -b feature/invoicing-data
+   ```
+
+3. **Create PRs targeting the feature branch** (not main)
+   ```bash
+   # PR targets feature/invoicing, not main
+   gh pr create --base feature/invoicing --title "Add invoice domain models"
+   ```
+
+4. **Merge sub-PRs without user review**
+   - These can be merged autonomously using squash merge:
+     ```bash
+     gh pr merge <number> --squash --delete-branch
+     ```
+   - Run `flutter analyze` and `flutter test` before merging
+   - Periodically sync feature branch with main to avoid conflicts:
+     ```bash
+     git checkout feature/invoicing
+     git merge main
+     # Resolve any conflicts, then push
+     git push
+     ```
+
+5. **When feature is complete, create PR to main**
+   ```bash
+   gh pr create --base main --title "feat: Implement Invoicing Feature"
+   ```
+   - This PR requires **user UAT approval**
+   - Summarize all changes from sub-PRs
+   - Include test plan for end-to-end validation
+
+6. **After PR to main is merged, clean up**
+   ```bash
+   # The feature branch will be deleted automatically if using --delete-branch
+   # Pull latest main
+   git checkout main && git pull
+   ```
+
+**Handling Merge Conflicts:**
+
+If conflicts arise when merging sub-PRs or syncing with main:
+1. Checkout the branch with conflicts
+2. Merge the target branch: `git merge feature/invoicing` (or `main`)
+3. Resolve conflicts in your editor
+4. Commit the resolution: `git add . && git commit -m "Resolve merge conflicts"`
+5. Push the resolved branch
+
+**Using Git Worktrees for Parallel Development:**
+
+Git worktrees allow you to have multiple branches checked out simultaneously in different directories, enabling true parallel development without constantly switching branches.
+
+```bash
+# Create worktrees for parallel feature development
+git worktree add ../GigLedger-clients feature/clients
+git worktree add ../GigLedger-expenses feature/expenses
+git worktree add ../GigLedger-settings feature/settings
+
+# Work in each worktree independently
+cd ../GigLedger-clients
+# ... make changes, commit, push, create PR
+
+# Clean up worktrees when done
+git worktree remove ../GigLedger-clients
+```
+
+**Review Gates Summary:**
+| PR Target | Review Required | Who Merges |
+|-----------|-----------------|------------|
+| Feature branch | No | Developer/Claude |
+| `main` | Yes (UAT) | User after testing |
+
 ### Merging a PR (Standard Process)
 
 When asked to merge a PR, follow this complete process:
