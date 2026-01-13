@@ -7,6 +7,7 @@ import '../features/auth/presentation/pages/email_sign_in_page.dart';
 import '../features/auth/presentation/pages/login_page.dart';
 import '../features/clients/presentation/pages/client_list_page.dart';
 import '../features/dashboard/presentation/pages/dashboard_page.dart';
+import '../features/expenses/presentation/pages/expense_form_page.dart';
 import '../features/expenses/presentation/pages/expense_list_page.dart';
 import '../features/settings/presentation/pages/business_profile_page.dart';
 import 'main_scaffold.dart';
@@ -116,20 +117,14 @@ final routerProvider = Provider<GoRouter>((ref) {
                   GoRoute(
                     path: 'new',
                     name: 'new-expense',
-                    builder: (context, state) => const PlaceholderScreen(
-                      title: 'New Expense',
-                      message: 'Add expense screen coming soon',
-                    ),
+                    builder: (context, state) => const ExpenseFormPage(),
                   ),
                   GoRoute(
                     path: ':id',
                     name: 'expense-detail',
                     builder: (context, state) {
                       final id = state.pathParameters['id']!;
-                      return PlaceholderScreen(
-                        title: 'Expense',
-                        message: 'Expense details for $id coming soon',
-                      );
+                      return ExpenseFormPage(expenseId: id);
                     },
                   ),
                 ],

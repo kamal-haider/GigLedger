@@ -1,0 +1,207 @@
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+
+import '../../../auth/application/providers/auth_providers.dart';
+import '../../domain/models/expense.dart';
+import 'expense_providers.dart';
+
+/// State for the expense form
+class ExpenseFormState {
+  final double? amount;
+  final ExpenseCategory category;
+  final String description;
+  final String? vendor;
+  final DateTime date;
+  final bool isLoading;
+  final String? errorMessage;
+  final bool isSaved;
+  final String? existingExpenseId;
+  final String? existingReceiptUrl;
+
+  const ExpenseFormState({
+    this.amount,
+    this.category = ExpenseCategory.other,
+    this.description = '',
+    this.vendor,
+    required this.date,
+    this.isLoading = false,
+    this.errorMessage,
+    this.isSaved = false,
+    this.existingExpenseId,
+    this.existingReceiptUrl,
+  });
+
+  bool get isEditMode => existingExpenseId != null;
+
+  ExpenseFormState copyWith({
+    double? amount,
+    ExpenseCategory? category,
+    String? description,
+    String? vendor,
+    DateTime? date,
+    bool? isLoading,
+    String? errorMessage,
+    bool? isSaved,
+    String? existingExpenseId,
+    String? existingReceiptUrl,
+    bool clearAmount = false,
+    bool clearVendor = false,
+    bool clearErrorMessage = false,
+  }) {
+    return ExpenseFormState(
+      amount: clearAmount ? null : (amount ?? this.amount),
+      category: category ?? this.category,
+      description: description ?? this.description,
+      vendor: clearVendor ? null : (vendor ?? this.vendor),
+      date: date ?? this.date,
+      isLoading: isLoading ?? this.isLoading,
+      errorMessage: clearErrorMessage ? null : (errorMessage ?? this.errorMessage),
+      isSaved: isSaved ?? this.isSaved,
+      existingExpenseId: existingExpenseId ?? this.existingExpenseId,
+      existingReceiptUrl: existingReceiptUrl ?? this.existingReceiptUrl,
+    );
+  }
+}
+
+/// Notifier for expense form state management
+class ExpenseFormNotifier extends StateNotifier<ExpenseFormState> {
+  final Ref _ref;
+
+  ExpenseFormNotifier(this._ref) : super(ExpenseFormState(date: DateTime.now()));
+
+  /// Initialize the form for creating a new expense
+  void initForCreate() {
+    state = ExpenseFormState(date: DateTime.now());
+  }
+
+  /// Initialize the form for editing an existing expense
+  void initForEdit(Expense expense) {
+    state = ExpenseFormState(
+      amount: expense.amount,
+      category: expense.category,
+      description: expense.description,
+      vendor: expense.vendor,
+      date: expense.date,
+      existingExpenseId: expense.id,
+      existingReceiptUrl: expense.receiptUrl,
+    );
+  }
+
+  void setAmount(double? amount) {
+    state = state.copyWith(amount: amount, clearAmount: amount == null);
+  }
+
+  void setCategory(ExpenseCategory category) {
+    state = state.copyWith(category: category);
+  }
+
+  void setDescription(String description) {
+    state = state.copyWith(description: description);
+  }
+
+  void setVendor(String? vendor) {
+    state = state.copyWith(vendor: vendor, clearVendor: vendor == null || vendor.isEmpty);
+  }
+
+  void setDate(DateTime date) {
+    state = state.copyWith(date: date);
+  }
+
+  void clearError() {
+    state = state.copyWith(clearErrorMessage: true);
+  }
+
+  /// Save the expense (create or update)
+  Future<Expense?> saveExpense() async {
+    // Validate required fields
+    if (state.amount == null || state.amount! <= 0) {
+      state = state.copyWith(errorMessage: 'Please enter a valid amount');
+      return null;
+    }
+
+    if (state.description.trim().isEmpty) {
+      state = state.copyWith(errorMessage: 'Please enter a description');
+      return null;
+    }
+
+    state = state.copyWith(isLoading: true, clearErrorMessage: true);
+
+    try {
+      final authState = _ref.read(authNotifierProvider);
+      final userId = authState.valueOrNull?.id;
+
+      if (userId == null) {
+        state = state.copyWith(
+          isLoading: false,
+          errorMessage: 'User not authenticated',
+        );
+        return null;
+      }
+
+      final expenseNotifier = _ref.read(expenseNotifierProvider.notifier);
+      final now = DateTime.now();
+
+      Expense savedExpense;
+
+      if (state.isEditMode) {
+        // Update existing expense
+        final expense = Expense(
+          id: state.existingExpenseId!,
+          userId: userId,
+          amount: state.amount!,
+          category: state.category,
+          description: state.description.trim(),
+          vendor: state.vendor?.trim().isEmpty == true ? null : state.vendor?.trim(),
+          receiptUrl: state.existingReceiptUrl,
+          date: state.date,
+          createdAt: now, // This will be ignored in update
+          updatedAt: now,
+        );
+        savedExpense = await expenseNotifier.updateExpense(expense);
+      } else {
+        // Create new expense
+        final expense = Expense(
+          id: '', // Will be generated by Firestore
+          userId: userId,
+          amount: state.amount!,
+          category: state.category,
+          description: state.description.trim(),
+          vendor: state.vendor?.trim().isEmpty == true ? null : state.vendor?.trim(),
+          receiptUrl: null,
+          date: state.date,
+          createdAt: now,
+          updatedAt: now,
+        );
+        savedExpense = await expenseNotifier.createExpense(expense);
+      }
+
+      state = state.copyWith(isLoading: false, isSaved: true);
+      return savedExpense;
+    } catch (e) {
+      state = state.copyWith(
+        isLoading: false,
+        errorMessage: _getErrorMessage(e),
+      );
+      return null;
+    }
+  }
+
+  String _getErrorMessage(Object error) {
+    final errorStr = error.toString().toLowerCase();
+    if (errorStr.contains('network') || errorStr.contains('connection')) {
+      return 'Network error. Please check your internet connection.';
+    }
+    if (errorStr.contains('permission') || errorStr.contains('denied')) {
+      return 'Permission denied. Please sign in again.';
+    }
+    if (errorStr.contains('auth')) {
+      return 'Authentication error. Please sign in again.';
+    }
+    return 'Failed to save expense. Please try again.';
+  }
+}
+
+/// Provider for expense form state
+final expenseFormProvider =
+    StateNotifierProvider.autoDispose<ExpenseFormNotifier, ExpenseFormState>((ref) {
+  return ExpenseFormNotifier(ref);
+});
