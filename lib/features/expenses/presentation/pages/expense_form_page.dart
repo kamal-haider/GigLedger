@@ -28,6 +28,7 @@ class _ExpenseFormPageState extends ConsumerState<ExpenseFormPage> {
   late TextEditingController _descriptionController;
   late TextEditingController _vendorController;
   bool _isInitialized = false;
+  bool _controllersInitialized = false;
 
   bool get isEditMode => widget.expenseId != null;
 
@@ -47,26 +48,42 @@ class _ExpenseFormPageState extends ConsumerState<ExpenseFormPage> {
     super.dispose();
   }
 
-  void _initializeForm() {
-    if (_isInitialized) return;
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (!_isInitialized) {
+      _isInitialized = true;
+      final formNotifier = ref.read(expenseFormProvider.notifier);
+      if (isEditMode) {
+        // Defer to avoid modifying provider during build
+        Future.microtask(() {
+          ref.read(expenseByIdProvider(widget.expenseId!)).whenData((expense) {
+            if (expense != null && !_controllersInitialized) {
+              formNotifier.initForEdit(expense);
+              _amountController.text = expense.amount.toStringAsFixed(2);
+              _descriptionController.text = expense.description;
+              _vendorController.text = expense.vendor ?? '';
+              _controllersInitialized = true;
+            }
+          });
+        });
+      } else {
+        formNotifier.initForCreate();
+      }
+    }
+  }
 
-    final formNotifier = ref.read(expenseFormProvider.notifier);
-
-    if (isEditMode) {
-      // Load existing expense for editing
+  void _syncControllersWithExpense() {
+    // For edit mode: sync controllers when expense data is loaded
+    if (isEditMode && !_controllersInitialized) {
       ref.read(expenseByIdProvider(widget.expenseId!)).whenData((expense) {
-        if (expense != null && !_isInitialized) {
-          formNotifier.initForEdit(expense);
+        if (expense != null && !_controllersInitialized) {
           _amountController.text = expense.amount.toStringAsFixed(2);
           _descriptionController.text = expense.description;
           _vendorController.text = expense.vendor ?? '';
-          _isInitialized = true;
+          _controllersInitialized = true;
         }
       });
-    } else {
-      // Initialize for new expense
-      formNotifier.initForCreate();
-      _isInitialized = true;
     }
   }
 
@@ -127,11 +144,11 @@ class _ExpenseFormPageState extends ConsumerState<ExpenseFormPage> {
       }
     });
 
-    // Initialize form
-    _initializeForm();
+    // Sync controllers with expense data (for edit mode)
+    _syncControllersWithExpense();
 
     // Show loading when editing and expense is being fetched
-    if (isEditMode && !_isInitialized) {
+    if (isEditMode && !_controllersInitialized) {
       final expenseAsync = ref.watch(expenseByIdProvider(widget.expenseId!));
       return Scaffold(
         appBar: AppBar(
