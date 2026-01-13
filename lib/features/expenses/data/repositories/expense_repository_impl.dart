@@ -160,7 +160,7 @@ class ExpenseRepositoryImpl implements IExpenseRepository {
   @override
   Future<double> getTotalExpenses(DateTime start, DateTime end) async {
     final expenses = await getByDateRange(start, end);
-    return expenses.fold(0.0, (sum, e) => sum + e.amount);
+    return expenses.fold<double>(0.0, (double sum, e) => sum + e.amount);
   }
 
   @override
