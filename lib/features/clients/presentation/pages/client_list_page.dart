@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 
 import '../../application/providers/client_providers.dart';
 import '../widgets/client_list_tile.dart';
@@ -39,9 +40,9 @@ class ClientListPage extends ConsumerWidget {
                     return ClientListTile(
                       client: client,
                       onTap: () {
-                        // TODO: Navigate to client details
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(content: Text('View ${client.name}')),
+                        context.goNamed(
+                          'client-detail',
+                          pathParameters: {'id': client.id},
                         );
                       },
                     );
@@ -88,15 +89,7 @@ class ClientListPage extends ConsumerWidget {
         ],
       ),
       floatingActionButton: FloatingActionButton.extended(
-        onPressed: () {
-          // TODO: Implement client creation screen and route
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('Client creation coming soon'),
-              behavior: SnackBarBehavior.floating,
-            ),
-          );
-        },
+        onPressed: () => context.goNamed('new-client'),
         icon: const Icon(Icons.add),
         label: const Text('Add Client'),
       ),
@@ -170,15 +163,7 @@ class ClientListPage extends ConsumerWidget {
             ),
             const SizedBox(height: 24),
             FilledButton.icon(
-              onPressed: () {
-                // TODO: Implement client creation screen and route
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(
-                    content: Text('Client creation coming soon'),
-                    behavior: SnackBarBehavior.floating,
-                  ),
-                );
-              },
+              onPressed: () => context.goNamed('new-client'),
               icon: const Icon(Icons.add),
               label: const Text('Add Your First Client'),
             ),
