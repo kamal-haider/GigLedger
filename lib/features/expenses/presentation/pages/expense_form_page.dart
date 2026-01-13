@@ -79,13 +79,17 @@ class _ExpenseFormPageState extends ConsumerState<ExpenseFormPage> {
     if (isEditMode && !_controllersInitialized) {
       ref.read(expenseByIdProvider(widget.expenseId!)).whenData((expense) {
         if (expense != null && !_controllersInitialized) {
-          // Initialize form state for edit mode
-          ref.read(expenseFormProvider.notifier).initForEdit(expense);
-          // Sync text controllers
+          _controllersInitialized = true;
+          // Sync text controllers (safe during build)
           _amountController.text = expense.amount.toStringAsFixed(2);
           _descriptionController.text = expense.description;
           _vendorController.text = expense.vendor ?? '';
-          _controllersInitialized = true;
+          // Defer provider modification to after build
+          Future.microtask(() {
+            if (mounted) {
+              ref.read(expenseFormProvider.notifier).initForEdit(expense);
+            }
+          });
         }
       });
     }
