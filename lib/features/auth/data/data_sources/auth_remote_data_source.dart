@@ -1,6 +1,11 @@
+import 'dart:convert';
+import 'dart:math';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:crypto/crypto.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:google_sign_in/google_sign_in.dart';
+import 'package:sign_in_with_apple/sign_in_with_apple.dart';
 
 import '../../../../core/error/exceptions.dart';
 import '../dto/user_profile_dto.dart';
@@ -15,6 +20,9 @@ abstract class AuthRemoteDataSource {
 
   /// Sign in with Google
   Future<UserProfileDTO> signInWithGoogle();
+
+  /// Sign in with Apple
+  Future<UserProfileDTO> signInWithApple();
 
   /// Sign in with email and password
   Future<UserProfileDTO> signInWithEmail(String email, String password);
@@ -135,6 +143,126 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
         code: 'unknown',
       );
     }
+  }
+
+  @override
+  Future<UserProfileDTO> signInWithApple() async {
+    try {
+      // Generate a random nonce for security
+      final rawNonce = _generateNonce();
+      final nonce = _sha256ofString(rawNonce);
+
+      // Request Apple ID credential
+      final appleCredential = await SignInWithApple.getAppleIDCredential(
+        scopes: [
+          AppleIDAuthorizationScopes.email,
+          AppleIDAuthorizationScopes.fullName,
+        ],
+        nonce: nonce,
+      );
+
+      // Create OAuth credential for Firebase
+      final oauthCredential = OAuthProvider('apple.com').credential(
+        idToken: appleCredential.identityToken,
+        rawNonce: rawNonce,
+      );
+
+      // Sign in to Firebase
+      final userCredential =
+          await _firebaseAuth.signInWithCredential(oauthCredential);
+
+      final user = userCredential.user;
+      if (user == null) {
+        throw const AuthException(
+          'Failed to sign in with Apple',
+          code: 'sign-in-failed',
+        );
+      }
+
+      // Apple only provides name on first sign-in, so we need to save it
+      String? displayName;
+      if (appleCredential.givenName != null ||
+          appleCredential.familyName != null) {
+        displayName = [appleCredential.givenName, appleCredential.familyName]
+            .where((n) => n != null && n.isNotEmpty)
+            .join(' ');
+        if (displayName.isEmpty) displayName = null;
+      }
+
+      // Check if user profile exists
+      final existingProfile = await getUserProfile(user.uid);
+      if (existingProfile != null) {
+        // Update profile, preserving existing display name if Apple didn't provide one
+        return saveUserProfile(
+          UserProfileDTO(
+            id: user.uid,
+            email: user.email ?? appleCredential.email,
+            displayName: displayName ?? existingProfile.displayName,
+            businessName: existingProfile.businessName,
+            businessLogo: existingProfile.businessLogo,
+            businessAddress: existingProfile.businessAddress,
+            currency: existingProfile.currency,
+            taxRate: existingProfile.taxRate,
+            paymentInstructions: existingProfile.paymentInstructions,
+            createdAt: existingProfile.createdAt,
+            updatedAt: Timestamp.now(),
+          ),
+        );
+      }
+
+      // Create new profile for first-time users
+      final now = Timestamp.now();
+      return saveUserProfile(
+        UserProfileDTO(
+          id: user.uid,
+          email: user.email ?? appleCredential.email,
+          displayName: displayName,
+          currency: 'USD',
+          taxRate: 0,
+          createdAt: now,
+          updatedAt: now,
+        ),
+      );
+    } on SignInWithAppleAuthorizationException catch (e) {
+      if (e.code == AuthorizationErrorCode.canceled) {
+        throw const AuthException(
+          'Apple sign-in was cancelled',
+          code: 'sign-in-cancelled',
+        );
+      }
+      throw AuthException(
+        'Apple sign-in failed: ${e.message}',
+        code: e.code.toString(),
+      );
+    } on FirebaseAuthException catch (e) {
+      throw AuthException(
+        e.message ?? 'Authentication failed',
+        code: e.code,
+      );
+    } on AuthException {
+      rethrow;
+    } catch (e) {
+      throw AuthException(
+        'Failed to sign in with Apple: $e',
+        code: 'unknown',
+      );
+    }
+  }
+
+  /// Generates a cryptographically secure random nonce
+  String _generateNonce([int length = 32]) {
+    const charset =
+        '0123456789ABCDEFGHIJKLMNOPQRSTUVXYZabcdefghijklmnopqrstuvwxyz-._';
+    final random = Random.secure();
+    return List.generate(length, (_) => charset[random.nextInt(charset.length)])
+        .join();
+  }
+
+  /// Returns the sha256 hash of [input] in hex notation
+  String _sha256ofString(String input) {
+    final bytes = utf8.encode(input);
+    final digest = sha256.convert(bytes);
+    return digest.toString();
   }
 
   @override

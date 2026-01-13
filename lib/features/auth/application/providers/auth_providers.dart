@@ -58,6 +58,18 @@ class AuthNotifier extends StateNotifier<AsyncValue<UserProfile?>> {
     }
   }
 
+  /// Sign in with Apple
+  Future<void> signInWithApple() async {
+    state = const AsyncValue.loading();
+    try {
+      final user = await _repository.signInWithApple();
+      state = AsyncValue.data(user);
+    } catch (e, st) {
+      state = AsyncValue.error(e, st);
+      rethrow;
+    }
+  }
+
   /// Sign in with email and password
   Future<void> signInWithEmail(String email, String password) async {
     state = const AsyncValue.loading();

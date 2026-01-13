@@ -50,6 +50,38 @@ class _LoginPageState extends ConsumerState<LoginPage> {
     }
   }
 
+  Future<void> _signInWithApple() async {
+    setState(() {
+      _isLoading = true;
+      _errorMessage = null;
+    });
+
+    try {
+      await ref.read(authNotifierProvider.notifier).signInWithApple();
+      if (mounted) {
+        context.go('/dashboard');
+      }
+    } on AuthFailure catch (e) {
+      if (mounted) {
+        setState(() {
+          _errorMessage = e.message;
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() {
+          _errorMessage = 'An unexpected error occurred. Please try again.';
+        });
+      }
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
@@ -120,21 +152,17 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                 isLoading: _isLoading,
               ),
               const SizedBox(height: 12),
-              // Apple Sign-In button placeholder (for issue #2)
+              // Apple Sign-In button
               SizedBox(
                 width: double.infinity,
                 height: 48,
                 child: OutlinedButton.icon(
-                  onPressed: () {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(
-                        content: Text('Apple Sign-In coming soon'),
-                      ),
-                    );
-                  },
+                  onPressed: _isLoading ? null : _signInWithApple,
                   style: OutlinedButton.styleFrom(
                     backgroundColor: Colors.black,
                     foregroundColor: Colors.white,
+                    disabledBackgroundColor: Colors.black54,
+                    disabledForegroundColor: Colors.white70,
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(8),
                     ),

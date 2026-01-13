@@ -56,11 +56,14 @@ class AuthRepositoryImpl implements IAuthRepository {
 
   @override
   Future<UserProfile> signInWithApple() async {
-    // TODO: Implement in Apple Sign-In issue #2
-    throw const AuthFailure(
-      'Apple Sign-In not implemented yet',
-      code: 'not-implemented',
-    );
+    try {
+      final dto = await _dataSource.signInWithApple();
+      return dto.toDomain();
+    } on AuthException catch (e) {
+      throw AuthFailure(e.message, code: e.code);
+    } on ServerException catch (e) {
+      throw ServerFailure(e.message, code: e.code);
+    }
   }
 
   @override
