@@ -1,31 +1,32 @@
 # Security Rules
 
 **Document ID:** 12
-**Last Updated:** [DATE]
+**Last Updated:** 2026-01-13
 **Status:** Active
 
 ## Overview
 
-This document describes the security rules implemented for GigLedger, explaining the security model and access control policies for each collection/resource.
+This document describes the Firestore security rules implemented for GigLedger, explaining the security model and access control policies for each collection.
 
 ## Security Principles
 
-1. **Principle of Least Privilege** - Users only have access to data they need
-2. **Authentication Required** - All access requires valid authentication (except public read-only data)
-3. **Data Integrity** - Prevent tampering with system-managed fields (UIDs, timestamps, etc.)
-4. **Backend-Controlled Writes** - [Protected data type] data is read-only for clients
+1. **Principle of Least Privilege** - Users only have access to their own data
+2. **Authentication Required** - All access requires valid Firebase Authentication
+3. **Data Integrity** - Prevent tampering with system-managed fields (createdAt, userId)
+4. **Field Validation** - Required fields are validated on create/update
+5. **Default Deny** - All paths not explicitly allowed are denied
 
 ## Rules Location
 
-- **File:** `[rules file name]` (project root or config location)
-- **Deploy Command:** `[deploy command]`
-- **Test with Emulator:** `[emulator command]`
+- **File:** `firestore.rules` (project root)
+- **Deploy Command:** `firebase deploy --only firestore:rules`
+- **Test with Emulator:** `firebase emulators:start`
 
 ## Collection-by-Collection Rules
 
 ### Users Collection (`/users/{uid}`)
 
-**Purpose:** Store user profile data including preferences, favorites, and onboarding status.
+**Purpose:** Store user profile and business settings.
 
 **Access Rules:**
 ```javascript
@@ -33,56 +34,137 @@ match /users/{uid} {
   // Read: Users can only read their own profile
   allow read: if isOwner(uid);
 
-  // Create: Users can create their own profile with matching UID
+  // Create: Users can create their own profile with required fields
   allow create: if isOwner(uid)
-                && request.resource.data.uid == request.auth.uid;
+                && hasRequiredFields(['email', 'currency', 'createdAt', 'updatedAt']);
 
-  // Update: Users can update their own profile but cannot change UID
+  // Update: Users can update their own profile (createdAt immutable)
   allow update: if isOwner(uid)
-                && request.resource.data.uid == resource.data.uid;
+                && request.resource.data.createdAt == resource.data.createdAt;
 
   // Delete: Users can delete their own profile
   allow delete: if isOwner(uid);
 }
 ```
 
-**Security Measures:**
-- Users can only access their own profile
-- UID tampering prevented during creation
-- UID modification prevented during updates
-- Fields like `hasCompletedOnboarding` can be modified by user (intentional)
+**Required Fields (create):**
+- `email` - Non-empty string
+- `currency` - Non-empty string (e.g., "USD")
+- `createdAt` - Timestamp
+- `updatedAt` - Timestamp
+
+**Immutable Fields:**
+- `createdAt` - Cannot be modified after creation
 
 ---
 
-### [Protected Data] Collections (Read-Only)
+### Clients Collection (`/users/{uid}/clients/{clientId}`)
 
-The following collections contain [data type] populated by backend. Users can read this data but cannot modify it.
-
-**Collections:**
-- `/[collection1]/{id}` - [Description]
-- `/[collection2]/{id}` - [Description]
-- `/[collection3]/{id}` - [Description]
-- `/[collection4]/{id}` - [Description]
+**Purpose:** Store client contact information and billing history.
 
 **Access Rules:**
 ```javascript
-match /[collection]/{id} {
-  allow read: if true;       // Public read access
-  allow write: if false;     // No client writes allowed
+match /clients/{clientId} {
+  allow read: if isOwner(uid);
+  allow create: if isOwner(uid)
+                && request.resource.data.userId == request.auth.uid
+                && hasRequiredFields(['name', 'createdAt', 'updatedAt']);
+  allow update: if isOwner(uid)
+                && preservesImmutableFields(['userId', 'createdAt']);
+  allow delete: if isOwner(uid);
 }
 ```
 
-**Security Rationale:**
-- Data integrity must be maintained
-- Only backend should populate this data
-- Users need read access to display information
-- `allow read: if true` is safe because data is non-sensitive and public
+**Required Fields (create):**
+- `userId` - Must match authenticated user's UID
+- `name` - Non-empty string
+- `createdAt` - Timestamp
+- `updatedAt` - Timestamp
+
+**Immutable Fields:**
+- `userId` - Cannot be changed
+- `createdAt` - Cannot be changed
+
+---
+
+### Expenses Collection (`/users/{uid}/expenses/{expenseId}`)
+
+**Purpose:** Store expense records with optional receipt URLs.
+
+**Access Rules:**
+```javascript
+match /expenses/{expenseId} {
+  allow read: if isOwner(uid);
+  allow create: if isOwner(uid)
+                && request.resource.data.userId == request.auth.uid
+                && hasRequiredFields(['amount', 'category', 'date', 'createdAt', 'updatedAt']);
+  allow update: if isOwner(uid)
+                && preservesImmutableFields(['userId', 'createdAt']);
+  allow delete: if isOwner(uid);
+}
+```
+
+**Required Fields (create):**
+- `userId` - Must match authenticated user's UID
+- `amount` - Number (can be 0)
+- `category` - Non-empty string
+- `date` - Timestamp
+- `createdAt` - Timestamp
+- `updatedAt` - Timestamp
+
+**Immutable Fields:**
+- `userId` - Cannot be changed
+- `createdAt` - Cannot be changed
+
+---
+
+### Invoices Collection (`/users/{uid}/invoices/{invoiceId}`)
+
+**Purpose:** Store invoice data with client reference and line items.
+
+**Access Rules:**
+```javascript
+match /invoices/{invoiceId} {
+  allow read: if isOwner(uid);
+  allow create: if isOwner(uid)
+                && request.resource.data.userId == request.auth.uid
+                && hasRequiredFields(['clientId', 'status', 'createdAt', 'updatedAt']);
+  allow update: if isOwner(uid)
+                && preservesImmutableFields(['userId', 'createdAt']);
+  allow delete: if isOwner(uid);
+}
+```
+
+**Required Fields (create):**
+- `userId` - Must match authenticated user's UID
+- `clientId` - Non-empty string (reference to client)
+- `status` - Non-empty string (draft, sent, paid, overdue)
+- `createdAt` - Timestamp
+- `updatedAt` - Timestamp
+
+**Immutable Fields:**
+- `userId` - Cannot be changed
+- `createdAt` - Cannot be changed
+
+---
+
+### Invoice Templates (`/invoiceTemplates/{templateId}`)
+
+**Purpose:** Shared invoice templates (read-only for clients).
+
+**Access Rules:**
+```javascript
+match /invoiceTemplates/{templateId} {
+  allow read: if isAuthenticated();
+  allow write: if false; // Admin-only via Firebase Console
+}
+```
 
 ---
 
 ### Default Deny Rule
 
-All other collections not explicitly matched are denied by default:
+All other collections not explicitly matched are denied:
 
 ```javascript
 match /{document=**} {
@@ -96,8 +178,6 @@ This ensures new collections are secure by default.
 
 ### `isAuthenticated()`
 
-Checks if request has valid authentication.
-
 ```javascript
 function isAuthenticated() {
   return request.auth != null;
@@ -106,68 +186,71 @@ function isAuthenticated() {
 
 ### `isOwner(uid)`
 
-Checks if authenticated user owns the resource.
-
 ```javascript
 function isOwner(uid) {
   return isAuthenticated() && request.auth.uid == uid;
 }
 ```
 
-## Testing Security Rules
+### `isNonEmptyString(field)`
 
-### Using Emulator
+```javascript
+function isNonEmptyString(field) {
+  return field is string && field.size() > 0;
+}
+```
 
-1. **Start Emulator:**
-   ```bash
-   [emulator start command]
-   ```
+### `isValidTimestamp(field)`
 
-2. **Run the app against emulator**
-
-3. **Test scenarios:**
-   - User can read their own profile
-   - User can update their own profile
-   - User cannot read another user's profile
-   - User cannot write to another user's document
-   - User cannot tamper with UID during create/update
-   - User can read [protected data]
-   - User cannot write [protected data]
-
-### Automated Testing (Future Enhancement)
-
-Consider using [testing framework] for unit testing security rules.
+```javascript
+function isValidTimestamp(field) {
+  return field is timestamp;
+}
+```
 
 ## Deployment
 
 ### Deploy Rules
 
 ```bash
-[deploy command]
+firebase deploy --only firestore:rules
 ```
 
-### Verify deployment
+### Verify Deployment
 
-```bash
-[verify command]
-```
+After deploying, test by:
+1. Signing in as a user
+2. Attempting to read/write own data (should succeed)
+3. Attempting to access another user's data (should fail)
 
-## Compliance & Best Practices
+## Testing with Emulator
+
+1. **Start Emulator:**
+   ```bash
+   firebase emulators:start
+   ```
+
+2. **Test scenarios:**
+   - User can read their own profile ✓
+   - User can create clients/expenses ✓
+   - User cannot read another user's data ✗
+   - User cannot modify userId/createdAt ✗
+   - Required field validation works ✓
+
+## Security Checklist
 
 ### Implemented
-
-- Users can only access their own data
-- Authentication required for user data access
-- UID tampering protection
-- Read-only enforcement for backend-managed collections
-- Default deny for unknown collections
+- [x] Users can only access their own data
+- [x] Authentication required for all operations
+- [x] userId tampering prevention
+- [x] createdAt immutability
+- [x] Required field validation
+- [x] Default deny for unknown collections
 
 ### Future Considerations
-
-- **Field-level validation** - Could add validation for specific fields
-- **Rate limiting** - Consider backend rate limiting for write-heavy operations
-- **Audit logging** - Enable audit logs in production for security monitoring
-- **Data encryption** - Already handled by [provider] (encryption at rest by default)
+- [ ] Rate limiting via Cloud Functions
+- [ ] Audit logging for sensitive operations
+- [ ] Field-level encryption for sensitive data
 
 ## Related Documentation
 
@@ -178,15 +261,9 @@ Consider using [testing framework] for unit testing security rules.
 
 | Date | Version | Changes |
 |------|---------|---------|
-| [DATE] | 1.0 | Initial security rules |
-
-## Security Contacts
-
-For security concerns or questions about these rules, please:
-1. Create a GitHub issue with `security` label
-2. For critical vulnerabilities, contact the team privately
+| 2026-01-13 | 1.0 | Initial security rules implementation |
 
 ---
 
-**Last Reviewed:** [DATE]
+**Last Reviewed:** 2026-01-13
 **Next Review:** Before production launch
