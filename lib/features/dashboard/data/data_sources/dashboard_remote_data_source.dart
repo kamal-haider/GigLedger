@@ -1,5 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:rxdart/rxdart.dart';
 
 import '../../../../core/error/exceptions.dart';
 import '../../domain/models/financial_summary.dart';
@@ -37,90 +38,154 @@ class DashboardRemoteDataSourceImpl implements DashboardRemoteDataSource {
   CollectionReference<Map<String, dynamic>> get _expensesCollection =>
       _firestore.collection('users').doc(_userId).collection('expenses');
 
+  /// Get date boundaries dynamically
+  ({DateTime startOfYear, DateTime startOfMonth}) _getDateBoundaries() {
+    final now = DateTime.now();
+    return (
+      startOfYear: DateTime(now.year, 1, 1),
+      startOfMonth: DateTime(now.year, now.month, 1),
+    );
+  }
+
   @override
   Future<FinancialSummary> getFinancialSummary() async {
     try {
-      final now = DateTime.now();
-      final startOfMonth = DateTime(now.year, now.month, 1);
-      final startOfYear = DateTime(now.year, 1, 1);
+      final dates = _getDateBoundaries();
+      final startOfYearTimestamp = Timestamp.fromDate(dates.startOfYear);
 
-      // Get all invoices and expenses in parallel
+      // Fetch only current year data to reduce costs
+      // For invoices: get pending/overdue (any date) + paid this year
+      // For expenses: get only this year
       final results = await Future.wait([
-        _invoicesCollection.get(),
-        _expensesCollection.get(),
+        // Get paid invoices from this year
+        _invoicesCollection
+            .where('status', isEqualTo: 'paid')
+            .where('paidDate', isGreaterThanOrEqualTo: startOfYearTimestamp)
+            .get(),
+        // Get pending invoices (sent/viewed status)
+        _invoicesCollection
+            .where('status', whereIn: ['sent', 'viewed'])
+            .get(),
+        // Get overdue invoices
+        _invoicesCollection
+            .where('status', isEqualTo: 'overdue')
+            .get(),
+        // Get expenses from this year
+        _expensesCollection
+            .where('date', isGreaterThanOrEqualTo: startOfYearTimestamp)
+            .get(),
       ]);
 
-      final invoices = results[0].docs;
-      final expenses = results[1].docs;
-
       return _calculateSummary(
-        invoices: invoices,
-        expenses: expenses,
-        startOfMonth: startOfMonth,
-        startOfYear: startOfYear,
+        paidInvoices: results[0].docs,
+        pendingInvoices: results[1].docs,
+        overdueInvoices: results[2].docs,
+        expenses: results[3].docs,
+        startOfMonth: dates.startOfMonth,
+        startOfYear: dates.startOfYear,
       );
+    } on AuthException {
+      rethrow;
     } catch (e) {
-      if (e is AuthException) rethrow;
-      throw ServerException('Failed to get financial summary: $e', code: 'firestore-read-error');
+      throw ServerException(
+        'Unable to load financial data. Please check your connection.',
+        code: 'firestore-read-error',
+      );
     }
   }
 
   @override
   Stream<FinancialSummary> watchFinancialSummary() {
-    final now = DateTime.now();
-    final startOfMonth = DateTime(now.year, now.month, 1);
-    final startOfYear = DateTime(now.year, 1, 1);
+    final dates = _getDateBoundaries();
+    final startOfYearTimestamp = Timestamp.fromDate(dates.startOfYear);
 
-    // Combine streams from invoices and expenses
-    return _invoicesCollection.snapshots().asyncMap((invoiceSnapshot) async {
-      final expenseSnapshot = await _expensesCollection.get();
-      return _calculateSummary(
-        invoices: invoiceSnapshot.docs,
-        expenses: expenseSnapshot.docs,
-        startOfMonth: startOfMonth,
-        startOfYear: startOfYear,
-      );
-    });
+    // Create streams for each query
+    final paidInvoicesStream = _invoicesCollection
+        .where('status', isEqualTo: 'paid')
+        .where('paidDate', isGreaterThanOrEqualTo: startOfYearTimestamp)
+        .snapshots();
+
+    final pendingInvoicesStream = _invoicesCollection
+        .where('status', whereIn: ['sent', 'viewed'])
+        .snapshots();
+
+    final overdueInvoicesStream = _invoicesCollection
+        .where('status', isEqualTo: 'overdue')
+        .snapshots();
+
+    final expensesStream = _expensesCollection
+        .where('date', isGreaterThanOrEqualTo: startOfYearTimestamp)
+        .snapshots();
+
+    // Combine all streams using rxdart
+    return Rx.combineLatest4(
+      paidInvoicesStream,
+      pendingInvoicesStream,
+      overdueInvoicesStream,
+      expensesStream,
+      (paidSnapshot, pendingSnapshot, overdueSnapshot, expenseSnapshot) {
+        // Recalculate date boundaries on each emission for accuracy
+        final currentDates = _getDateBoundaries();
+        return _calculateSummary(
+          paidInvoices: paidSnapshot.docs,
+          pendingInvoices: pendingSnapshot.docs,
+          overdueInvoices: overdueSnapshot.docs,
+          expenses: expenseSnapshot.docs,
+          startOfMonth: currentDates.startOfMonth,
+          startOfYear: currentDates.startOfYear,
+        );
+      },
+    );
   }
 
   FinancialSummary _calculateSummary({
-    required List<QueryDocumentSnapshot<Map<String, dynamic>>> invoices,
+    required List<QueryDocumentSnapshot<Map<String, dynamic>>> paidInvoices,
+    required List<QueryDocumentSnapshot<Map<String, dynamic>>> pendingInvoices,
+    required List<QueryDocumentSnapshot<Map<String, dynamic>>> overdueInvoices,
     required List<QueryDocumentSnapshot<Map<String, dynamic>>> expenses,
     required DateTime startOfMonth,
     required DateTime startOfYear,
   }) {
-    double incomeThisMonth = 0;
-    double incomeYTD = 0;
-    int pendingInvoices = 0;
-    double pendingAmount = 0;
-    int overdueInvoices = 0;
-    double overdueAmount = 0;
+    var incomeThisMonth = 0.0;
+    var incomeYTD = 0.0;
 
-    for (final doc in invoices) {
+    // Process paid invoices
+    for (final doc in paidInvoices) {
       final data = doc.data();
-      final status = data['status'] as String?;
       final total = (data['total'] as num?)?.toDouble() ?? 0;
       final paidDateData = data['paidDate'];
 
-      if (status == 'paid' && paidDateData != null) {
+      if (paidDateData != null) {
         final paidDate = (paidDateData as Timestamp).toDate();
-        if (paidDate.isAfter(startOfYear)) {
+        // Use !isBefore to include boundary dates (Jan 1, 1st of month)
+        if (!paidDate.isBefore(startOfYear)) {
           incomeYTD += total;
-          if (paidDate.isAfter(startOfMonth)) {
+          if (!paidDate.isBefore(startOfMonth)) {
             incomeThisMonth += total;
           }
         }
-      } else if (status == 'sent' || status == 'viewed') {
-        pendingInvoices++;
-        pendingAmount += total;
-      } else if (status == 'overdue') {
-        overdueInvoices++;
-        overdueAmount += total;
       }
     }
 
-    double expensesThisMonth = 0;
-    double expensesYTD = 0;
+    // Calculate pending totals
+    var pendingCount = pendingInvoices.length;
+    var pendingAmount = 0.0;
+    for (final doc in pendingInvoices) {
+      final data = doc.data();
+      pendingAmount += (data['total'] as num?)?.toDouble() ?? 0;
+    }
+
+    // Calculate overdue totals
+    var overdueCount = overdueInvoices.length;
+    var overdueAmount = 0.0;
+    for (final doc in overdueInvoices) {
+      final data = doc.data();
+      overdueAmount += (data['total'] as num?)?.toDouble() ?? 0;
+    }
+
+    // Process expenses
+    var expensesThisMonth = 0.0;
+    var expensesYTD = 0.0;
 
     for (final doc in expenses) {
       final data = doc.data();
@@ -129,9 +194,10 @@ class DashboardRemoteDataSourceImpl implements DashboardRemoteDataSource {
 
       if (dateData != null) {
         final date = (dateData as Timestamp).toDate();
-        if (date.isAfter(startOfYear)) {
+        // Use !isBefore to include boundary dates
+        if (!date.isBefore(startOfYear)) {
           expensesYTD += amount;
-          if (date.isAfter(startOfMonth)) {
+          if (!date.isBefore(startOfMonth)) {
             expensesThisMonth += amount;
           }
         }
@@ -143,9 +209,9 @@ class DashboardRemoteDataSourceImpl implements DashboardRemoteDataSource {
       incomeYTD: incomeYTD,
       expensesThisMonth: expensesThisMonth,
       expensesYTD: expensesYTD,
-      pendingInvoices: pendingInvoices,
+      pendingInvoices: pendingCount,
       pendingAmount: pendingAmount,
-      overdueInvoices: overdueInvoices,
+      overdueInvoices: overdueCount,
       overdueAmount: overdueAmount,
     );
   }
@@ -169,8 +235,7 @@ class DashboardRemoteDataSourceImpl implements DashboardRemoteDataSource {
 
       // Convert invoices to activities
       for (final doc in results[0].docs) {
-        final data = doc.data();
-        final activity = _invoiceToActivity(doc.id, data);
+        final activity = _invoiceToActivity(doc.id, doc.data());
         if (activity != null) {
           activities.add(activity);
         }
@@ -178,8 +243,7 @@ class DashboardRemoteDataSourceImpl implements DashboardRemoteDataSource {
 
       // Convert expenses to activities
       for (final doc in results[1].docs) {
-        final data = doc.data();
-        final activity = _expenseToActivity(doc.id, data);
+        final activity = _expenseToActivity(doc.id, doc.data());
         if (activity != null) {
           activities.add(activity);
         }
@@ -188,48 +252,53 @@ class DashboardRemoteDataSourceImpl implements DashboardRemoteDataSource {
       // Sort by timestamp and take top N
       activities.sort((a, b) => b.timestamp.compareTo(a.timestamp));
       return activities.take(limit).toList();
+    } on AuthException {
+      rethrow;
     } catch (e) {
-      if (e is AuthException) rethrow;
-      throw ServerException('Failed to get recent activity: $e', code: 'firestore-read-error');
+      throw ServerException(
+        'Unable to load recent activity. Please check your connection.',
+        code: 'firestore-read-error',
+      );
     }
   }
 
   @override
   Stream<List<RecentActivity>> watchRecentActivity({int limit = 5}) {
-    return _invoicesCollection
+    final invoicesStream = _invoicesCollection
         .orderBy('updatedAt', descending: true)
         .limit(limit)
-        .snapshots()
-        .asyncMap((invoiceSnapshot) async {
-      final activities = <RecentActivity>[];
+        .snapshots();
 
-      // Convert invoices to activities
-      for (final doc in invoiceSnapshot.docs) {
-        final data = doc.data();
-        final activity = _invoiceToActivity(doc.id, data);
-        if (activity != null) {
-          activities.add(activity);
+    final expensesStream = _expensesCollection
+        .orderBy('createdAt', descending: true)
+        .limit(limit)
+        .snapshots();
+
+    // Combine both streams for real-time updates from either source
+    return Rx.combineLatest2(
+      invoicesStream,
+      expensesStream,
+      (invoiceSnapshot, expenseSnapshot) {
+        final activities = <RecentActivity>[];
+
+        for (final doc in invoiceSnapshot.docs) {
+          final activity = _invoiceToActivity(doc.id, doc.data());
+          if (activity != null) {
+            activities.add(activity);
+          }
         }
-      }
 
-      // Get recent expenses
-      final expenseSnapshot = await _expensesCollection
-          .orderBy('createdAt', descending: true)
-          .limit(limit)
-          .get();
-
-      for (final doc in expenseSnapshot.docs) {
-        final data = doc.data();
-        final activity = _expenseToActivity(doc.id, data);
-        if (activity != null) {
-          activities.add(activity);
+        for (final doc in expenseSnapshot.docs) {
+          final activity = _expenseToActivity(doc.id, doc.data());
+          if (activity != null) {
+            activities.add(activity);
+          }
         }
-      }
 
-      // Sort by timestamp and take top N
-      activities.sort((a, b) => b.timestamp.compareTo(a.timestamp));
-      return activities.take(limit).toList();
-    });
+        activities.sort((a, b) => b.timestamp.compareTo(a.timestamp));
+        return activities.take(limit).toList();
+      },
+    );
   }
 
   RecentActivity? _invoiceToActivity(String id, Map<String, dynamic> data) {
@@ -241,30 +310,13 @@ class DashboardRemoteDataSourceImpl implements DashboardRemoteDataSource {
     if (updatedAtData == null) return null;
 
     final timestamp = (updatedAtData as Timestamp).toDate();
-    ActivityType type;
-    String title;
-
-    switch (status) {
-      case 'draft':
-        type = ActivityType.invoiceCreated;
-        title = 'Invoice created for $clientName';
-        break;
-      case 'sent':
-        type = ActivityType.invoiceSent;
-        title = 'Invoice sent to $clientName';
-        break;
-      case 'paid':
-        type = ActivityType.invoicePaid;
-        title = 'Payment received from $clientName';
-        break;
-      case 'overdue':
-        type = ActivityType.invoiceOverdue;
-        title = 'Invoice overdue for $clientName';
-        break;
-      default:
-        type = ActivityType.invoiceCreated;
-        title = 'Invoice updated for $clientName';
-    }
+    final (type, title) = switch (status) {
+      'draft' => (ActivityType.invoiceCreated, 'Invoice created for $clientName'),
+      'sent' => (ActivityType.invoiceSent, 'Invoice sent to $clientName'),
+      'paid' => (ActivityType.invoicePaid, 'Payment received from $clientName'),
+      'overdue' => (ActivityType.invoiceOverdue, 'Invoice overdue for $clientName'),
+      _ => (ActivityType.invoiceCreated, 'Invoice updated for $clientName'),
+    };
 
     return RecentActivity(
       id: 'invoice_$id',
