@@ -99,7 +99,9 @@ class _ActivityTile extends StatelessWidget {
     final (icon, color) = _getIconAndColor(activity.type, theme.colorScheme);
 
     return InkWell(
-      onTap: () => _navigateToActivity(context, activity),
+      onTap: activity.relatedId != null
+          ? () => _navigateToActivity(context, activity)
+          : null,
       borderRadius: BorderRadius.circular(8),
       child: Padding(
         padding: const EdgeInsets.symmetric(vertical: 8),

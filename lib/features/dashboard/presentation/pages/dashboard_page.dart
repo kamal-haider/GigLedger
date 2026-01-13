@@ -28,6 +28,7 @@ class DashboardPage extends ConsumerWidget {
       body: RefreshIndicator(
         onRefresh: () async {
           ref.invalidate(financialSummaryStreamProvider);
+          ref.invalidate(recentActivityStreamProvider);
         },
         child: ListView(
           padding: const EdgeInsets.all(16),
