@@ -5,6 +5,7 @@ import '../../../settings/application/providers/settings_providers.dart';
 import '../../application/providers/dashboard_providers.dart';
 import '../../domain/models/financial_summary.dart';
 import '../widgets/financial_summary_card.dart';
+import '../widgets/quick_actions_grid.dart';
 
 /// Main dashboard page showing financial overview
 class DashboardPage extends ConsumerWidget {
@@ -59,8 +60,8 @@ class DashboardPage extends ConsumerWidget {
             ),
             const SizedBox(height: 24),
 
-            // Quick Actions placeholder (for #5)
-            _buildQuickActionsPlaceholder(context),
+            // Quick Actions
+            const QuickActionsGrid(),
             const SizedBox(height: 24),
 
             // Recent Activity placeholder (for #6)
@@ -101,34 +102,6 @@ class DashboardPage extends ConsumerWidget {
             ),
           ),
       ],
-    );
-  }
-
-  Widget _buildQuickActionsPlaceholder(BuildContext context) {
-    final theme = Theme.of(context);
-
-    return Card(
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              'Quick Actions',
-              style: theme.textTheme.titleMedium?.copyWith(
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-            const SizedBox(height: 12),
-            Text(
-              'Quick actions coming soon',
-              style: theme.textTheme.bodyMedium?.copyWith(
-                color: theme.colorScheme.onSurfaceVariant,
-              ),
-            ),
-          ],
-        ),
-      ),
     );
   }
 

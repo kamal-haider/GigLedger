@@ -149,6 +149,16 @@ final routerProvider = Provider<GoRouter>((ref) {
         ],
       ),
 
+      // Reports (standalone page, not in shell)
+      GoRoute(
+        path: '/reports',
+        name: 'reports',
+        builder: (context, state) => const PlaceholderScreen(
+          title: 'Reports',
+          message: 'Income vs expense charts, top clients, and category breakdown coming soon',
+        ),
+      ),
+
       // Root redirect
       GoRoute(
         path: '/',
