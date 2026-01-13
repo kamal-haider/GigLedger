@@ -6,6 +6,7 @@ import '../features/auth/application/providers/auth_providers.dart';
 import '../features/auth/presentation/pages/email_sign_in_page.dart';
 import '../features/auth/presentation/pages/login_page.dart';
 import '../features/clients/presentation/pages/client_list_page.dart';
+import '../features/dashboard/presentation/pages/dashboard_page.dart';
 import '../features/expenses/presentation/pages/expense_list_page.dart';
 import '../features/settings/presentation/pages/business_profile_page.dart';
 import 'main_scaffold.dart';
@@ -161,49 +162,6 @@ final routerProvider = Provider<GoRouter>((ref) {
     ),
   );
 });
-
-/// Dashboard page - placeholder for now
-class DashboardPage extends StatelessWidget {
-  const DashboardPage({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Dashboard'),
-      ),
-      body: Center(
-        child: Padding(
-          padding: const EdgeInsets.all(24.0),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Icon(
-                Icons.dashboard,
-                size: 64,
-                color: Theme.of(context).colorScheme.primary,
-              ),
-              const SizedBox(height: 24),
-              Text(
-                'Dashboard coming soon',
-                textAlign: TextAlign.center,
-                style: Theme.of(context).textTheme.titleLarge,
-              ),
-              const SizedBox(height: 8),
-              Text(
-                'Financial overview, quick actions, and recent activity',
-                textAlign: TextAlign.center,
-                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                      color: Theme.of(context).colorScheme.onSurfaceVariant,
-                    ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-}
 
 /// Invoices page - placeholder for now
 class InvoicesPage extends StatelessWidget {
