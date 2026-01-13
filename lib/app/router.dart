@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import '../features/auth/application/providers/auth_providers.dart';
 import '../features/auth/presentation/pages/email_sign_in_page.dart';
 import '../features/auth/presentation/pages/login_page.dart';
+import '../features/clients/presentation/pages/client_detail_page.dart';
 import '../features/clients/presentation/pages/client_form_page.dart';
 import '../features/clients/presentation/pages/client_list_page.dart';
 import '../features/dashboard/presentation/pages/dashboard_page.dart';
@@ -151,8 +152,18 @@ final routerProvider = Provider<GoRouter>((ref) {
                     name: 'client-detail',
                     builder: (context, state) {
                       final id = state.pathParameters['id']!;
-                      return ClientFormPage(clientId: id);
+                      return ClientDetailPage(clientId: id);
                     },
+                    routes: [
+                      GoRoute(
+                        path: 'edit',
+                        name: 'edit-client',
+                        builder: (context, state) {
+                          final id = state.pathParameters['id']!;
+                          return ClientFormPage(clientId: id);
+                        },
+                      ),
+                    ],
                   ),
                 ],
               ),
