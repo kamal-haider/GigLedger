@@ -1,7 +1,11 @@
+import 'dart:io';
+
+import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:image_picker/image_picker.dart';
 
 import '../../../auth/application/providers/auth_providers.dart';
 import '../../application/providers/settings_providers.dart';
@@ -25,6 +29,8 @@ class _BusinessProfilePageState extends ConsumerState<BusinessProfilePage> {
   String _selectedCurrency = 'USD';
   bool _hasChanges = false;
   bool _isInitialized = false;
+  bool _isUploadingLogo = false;
+  double _uploadProgress = 0.0;
 
   @override
   void initState() {
@@ -134,14 +140,125 @@ class _BusinessProfilePageState extends ConsumerState<BusinessProfilePage> {
   }
 
   Future<void> _handleLogoUpload() async {
-    // TODO(#38): Implement image picker and Firebase Storage upload
-    // See: https://github.com/kamal-haider/GigLedger/issues/38
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('Logo upload coming soon'),
-        behavior: SnackBarBehavior.floating,
+    // Show image source selection dialog
+    final source = await showModalBottomSheet<ImageSource>(
+      context: context,
+      builder: (context) => SafeArea(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            ListTile(
+              leading: const Icon(Icons.photo_library),
+              title: const Text('Choose from Gallery'),
+              onTap: () => Navigator.pop(context, ImageSource.gallery),
+            ),
+            ListTile(
+              leading: const Icon(Icons.camera_alt),
+              title: const Text('Take a Photo'),
+              onTap: () => Navigator.pop(context, ImageSource.camera),
+            ),
+          ],
+        ),
       ),
     );
+
+    if (source == null) return;
+
+    try {
+      final picker = ImagePicker();
+      final pickedFile = await picker.pickImage(
+        source: source,
+        maxWidth: 512,
+        maxHeight: 512,
+        imageQuality: 85,
+      );
+
+      if (pickedFile == null) return;
+
+      // Check file size (max 2MB)
+      final file = File(pickedFile.path);
+      final fileSize = await file.length();
+      if (fileSize > 2 * 1024 * 1024) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Image too large. Please choose an image under 2MB.'),
+              behavior: SnackBarBehavior.floating,
+            ),
+          );
+        }
+        return;
+      }
+
+      setState(() {
+        _isUploadingLogo = true;
+        _uploadProgress = 0.0;
+      });
+
+      // Get current user ID
+      final authState = ref.read(authNotifierProvider);
+      final userId = authState.valueOrNull?.id;
+      if (userId == null) {
+        throw Exception('User not authenticated');
+      }
+
+      // Upload to Firebase Storage
+      final storageRef = FirebaseStorage.instance
+          .ref()
+          .child('users')
+          .child(userId)
+          .child('logo.jpg');
+
+      final uploadTask = storageRef.putFile(
+        file,
+        SettableMetadata(contentType: 'image/jpeg'),
+      );
+
+      // Listen to upload progress
+      uploadTask.snapshotEvents.listen((event) {
+        if (mounted) {
+          setState(() {
+            _uploadProgress = event.bytesTransferred / event.totalBytes;
+          });
+        }
+      });
+
+      // Wait for upload to complete
+      await uploadTask;
+
+      // Get download URL
+      final downloadUrl = await storageRef.getDownloadURL();
+
+      // Update profile with logo URL
+      final notifier = ref.read(businessProfileNotifierProvider.notifier);
+      await notifier.updateBusinessLogo(downloadUrl);
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Logo uploaded successfully'),
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Failed to upload logo: ${e.toString()}'),
+            behavior: SnackBarBehavior.floating,
+            backgroundColor: Theme.of(context).colorScheme.error,
+          ),
+        );
+      }
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isUploadingLogo = false;
+          _uploadProgress = 0.0;
+        });
+      }
+    }
   }
 
   Future<void> _handleLogoRemove() async {
