@@ -58,6 +58,39 @@ class AuthNotifier extends StateNotifier<AsyncValue<UserProfile?>> {
     }
   }
 
+  /// Sign in with email and password
+  Future<void> signInWithEmail(String email, String password) async {
+    state = const AsyncValue.loading();
+    try {
+      final user = await _repository.signInWithEmail(email, password);
+      state = AsyncValue.data(user);
+    } catch (e, st) {
+      state = AsyncValue.error(e, st);
+      rethrow;
+    }
+  }
+
+  /// Create account with email and password
+  Future<void> createAccount(String email, String password) async {
+    state = const AsyncValue.loading();
+    try {
+      final user = await _repository.createAccount(email, password);
+      state = AsyncValue.data(user);
+    } catch (e, st) {
+      state = AsyncValue.error(e, st);
+      rethrow;
+    }
+  }
+
+  /// Send password reset email
+  Future<void> sendPasswordReset(String email) async {
+    try {
+      await _repository.sendPasswordReset(email);
+    } catch (e) {
+      rethrow;
+    }
+  }
+
   /// Sign out
   Future<void> signOut() async {
     try {

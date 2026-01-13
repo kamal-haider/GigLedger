@@ -65,29 +65,35 @@ class AuthRepositoryImpl implements IAuthRepository {
 
   @override
   Future<UserProfile> signInWithEmail(String email, String password) async {
-    // TODO: Implement in Email Sign-In issue #3
-    throw const AuthFailure(
-      'Email Sign-In not implemented yet',
-      code: 'not-implemented',
-    );
+    try {
+      final dto = await _dataSource.signInWithEmail(email, password);
+      return dto.toDomain();
+    } on AuthException catch (e) {
+      throw AuthFailure(e.message, code: e.code);
+    } on ServerException catch (e) {
+      throw ServerFailure(e.message, code: e.code);
+    }
   }
 
   @override
   Future<UserProfile> createAccount(String email, String password) async {
-    // TODO: Implement in Email Sign-In issue #3
-    throw const AuthFailure(
-      'Account creation not implemented yet',
-      code: 'not-implemented',
-    );
+    try {
+      final dto = await _dataSource.createAccountWithEmail(email, password);
+      return dto.toDomain();
+    } on AuthException catch (e) {
+      throw AuthFailure(e.message, code: e.code);
+    } on ServerException catch (e) {
+      throw ServerFailure(e.message, code: e.code);
+    }
   }
 
   @override
   Future<void> sendPasswordReset(String email) async {
-    // TODO: Implement in Email Sign-In issue #3
-    throw const AuthFailure(
-      'Password reset not implemented yet',
-      code: 'not-implemented',
-    );
+    try {
+      await _dataSource.sendPasswordResetEmail(email);
+    } on AuthException catch (e) {
+      throw AuthFailure(e.message, code: e.code);
+    }
   }
 
   @override

@@ -16,6 +16,15 @@ abstract class AuthRemoteDataSource {
   /// Sign in with Google
   Future<UserProfileDTO> signInWithGoogle();
 
+  /// Sign in with email and password
+  Future<UserProfileDTO> signInWithEmail(String email, String password);
+
+  /// Create account with email and password
+  Future<UserProfileDTO> createAccountWithEmail(String email, String password);
+
+  /// Send password reset email
+  Future<void> sendPasswordResetEmail(String email);
+
   /// Sign out
   Future<void> signOut();
 
@@ -125,6 +134,138 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
         'Failed to sign in with Google: $e',
         code: 'unknown',
       );
+    }
+  }
+
+  @override
+  Future<UserProfileDTO> signInWithEmail(String email, String password) async {
+    try {
+      final userCredential = await _firebaseAuth.signInWithEmailAndPassword(
+        email: email,
+        password: password,
+      );
+
+      final user = userCredential.user;
+      if (user == null) {
+        throw const AuthException(
+          'Failed to sign in',
+          code: 'sign-in-failed',
+        );
+      }
+
+      // Get existing profile
+      final existingProfile = await getUserProfile(user.uid);
+      if (existingProfile != null) {
+        return existingProfile;
+      }
+
+      // Create profile if it doesn't exist (shouldn't happen normally)
+      final now = Timestamp.now();
+      return saveUserProfile(
+        UserProfileDTO(
+          id: user.uid,
+          email: user.email,
+          currency: 'USD',
+          taxRate: 0,
+          createdAt: now,
+          updatedAt: now,
+        ),
+      );
+    } on FirebaseAuthException catch (e) {
+      throw AuthException(
+        _getEmailAuthErrorMessage(e.code),
+        code: e.code,
+      );
+    } catch (e) {
+      throw AuthException(
+        'Failed to sign in: $e',
+        code: 'unknown',
+      );
+    }
+  }
+
+  @override
+  Future<UserProfileDTO> createAccountWithEmail(
+      String email, String password) async {
+    try {
+      final userCredential = await _firebaseAuth.createUserWithEmailAndPassword(
+        email: email,
+        password: password,
+      );
+
+      final user = userCredential.user;
+      if (user == null) {
+        throw const AuthException(
+          'Failed to create account',
+          code: 'account-creation-failed',
+        );
+      }
+
+      // Create new profile
+      final now = Timestamp.now();
+      return saveUserProfile(
+        UserProfileDTO(
+          id: user.uid,
+          email: user.email,
+          currency: 'USD',
+          taxRate: 0,
+          createdAt: now,
+          updatedAt: now,
+        ),
+      );
+    } on FirebaseAuthException catch (e) {
+      throw AuthException(
+        _getEmailAuthErrorMessage(e.code),
+        code: e.code,
+      );
+    } catch (e) {
+      throw AuthException(
+        'Failed to create account: $e',
+        code: 'unknown',
+      );
+    }
+  }
+
+  @override
+  Future<void> sendPasswordResetEmail(String email) async {
+    try {
+      await _firebaseAuth.sendPasswordResetEmail(email: email);
+    } on FirebaseAuthException catch (e) {
+      throw AuthException(
+        _getEmailAuthErrorMessage(e.code),
+        code: e.code,
+      );
+    } catch (e) {
+      throw AuthException(
+        'Failed to send password reset email: $e',
+        code: 'unknown',
+      );
+    }
+  }
+
+  /// Convert Firebase error codes to user-friendly messages
+  String _getEmailAuthErrorMessage(String code) {
+    switch (code) {
+      case 'invalid-email':
+        return 'The email address is not valid.';
+      case 'user-disabled':
+        return 'This account has been disabled.';
+      case 'user-not-found':
+        return 'No account found with this email.';
+      case 'wrong-password':
+        return 'Incorrect password.';
+      case 'invalid-credential':
+        return 'Invalid email or password.';
+      case 'email-already-in-use':
+        return 'An account already exists with this email.';
+      case 'weak-password':
+        return 'Password is too weak. Use at least 8 characters.';
+      case 'operation-not-allowed':
+        return 'Email/password sign-in is not enabled.';
+      case 'too-many-requests':
+        return 'Too many attempts. Please try again later.';
+      default:
+        return 'Authentication failed. Please try again.';
     }
   }
 

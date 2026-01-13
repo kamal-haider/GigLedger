@@ -167,18 +167,12 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                 ],
               ),
               const SizedBox(height: 24),
-              // Email sign-in button placeholder (for issue #3)
+              // Email sign-in button
               SizedBox(
                 width: double.infinity,
                 height: 48,
                 child: OutlinedButton.icon(
-                  onPressed: () {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(
-                        content: Text('Email Sign-In coming soon'),
-                      ),
-                    );
-                  },
+                  onPressed: () => context.push('/email-sign-in'),
                   style: OutlinedButton.styleFrom(
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(8),

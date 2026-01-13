@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../features/auth/application/providers/auth_providers.dart';
+import '../features/auth/presentation/pages/email_sign_in_page.dart';
 import '../features/auth/presentation/pages/login_page.dart';
 import '../features/clients/presentation/pages/client_list_page.dart';
 import '../features/expenses/presentation/pages/expense_list_page.dart';
@@ -17,15 +18,16 @@ final routerProvider = Provider<GoRouter>((ref) {
     initialLocation: '/login',
     redirect: (context, state) {
       final isLoggedIn = authState.valueOrNull != null;
-      final isLoggingIn = state.matchedLocation == '/login';
+      final isOnAuthPage = state.matchedLocation == '/login' ||
+          state.matchedLocation == '/email-sign-in';
 
-      // If not logged in and not on login page, redirect to login
-      if (!isLoggedIn && !isLoggingIn) {
+      // If not logged in and not on an auth page, redirect to login
+      if (!isLoggedIn && !isOnAuthPage) {
         return '/login';
       }
 
-      // If logged in and on login page, redirect to dashboard
-      if (isLoggedIn && isLoggingIn) {
+      // If logged in and on an auth page, redirect to dashboard
+      if (isLoggedIn && isOnAuthPage) {
         return '/dashboard';
       }
 
@@ -37,6 +39,11 @@ final routerProvider = Provider<GoRouter>((ref) {
         path: '/login',
         name: 'login',
         builder: (context, state) => const LoginPage(),
+      ),
+      GoRoute(
+        path: '/email-sign-in',
+        name: 'email-sign-in',
+        builder: (context, state) => const EmailSignInPage(),
       ),
 
       // Main app shell with bottom navigation
