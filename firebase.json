@@ -1,1 +1,35 @@
-{"flutter":{"platforms":{"android":{"default":{"projectId":"gigledger-app","appId":"1:1019634697825:android:5b6774207e50758c6f8c20","fileOutput":"android/app/google-services.json"}},"ios":{"default":{"projectId":"gigledger-app","appId":"1:1019634697825:ios:2d8a4d8ca2fbdf606f8c20","uploadDebugSymbols":false,"fileOutput":"ios/Runner/GoogleService-Info.plist"}},"dart":{"lib/firebase_options.dart":{"projectId":"gigledger-app","configurations":{"android":"1:1019634697825:android:5b6774207e50758c6f8c20","ios":"1:1019634697825:ios:2d8a4d8ca2fbdf606f8c20","web":"1:1019634697825:web:4ee5807df4d3f2116f8c20"}}}}}}
+{
+  "firestore": {
+    "rules": "firestore.rules",
+    "indexes": "firestore.indexes.json"
+  },
+  "flutter": {
+    "platforms": {
+      "android": {
+        "default": {
+          "projectId": "gigledger-app",
+          "appId": "1:1019634697825:android:5b6774207e50758c6f8c20",
+          "fileOutput": "android/app/google-services.json"
+        }
+      },
+      "ios": {
+        "default": {
+          "projectId": "gigledger-app",
+          "appId": "1:1019634697825:ios:2d8a4d8ca2fbdf606f8c20",
+          "uploadDebugSymbols": false,
+          "fileOutput": "ios/Runner/GoogleService-Info.plist"
+        }
+      },
+      "dart": {
+        "lib/firebase_options.dart": {
+          "projectId": "gigledger-app",
+          "configurations": {
+            "android": "1:1019634697825:android:5b6774207e50758c6f8c20",
+            "ios": "1:1019634697825:ios:2d8a4d8ca2fbdf606f8c20",
+            "web": "1:1019634697825:web:4ee5807df4d3f2116f8c20"
+          }
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,159 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // ============================================
+    // HELPER FUNCTIONS
+    // ============================================
+
+    // Check if request has valid authentication
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    // Check if authenticated user owns the resource (uid matches)
+    function isOwner(uid) {
+      return isAuthenticated() && request.auth.uid == uid;
+    }
+
+    // Check if a field exists and is a non-empty string
+    function isNonEmptyString(field) {
+      return field is string && field.size() > 0;
+    }
+
+    // Check if a field is a valid timestamp
+    function isValidTimestamp(field) {
+      return field is timestamp;
+    }
+
+    // Check if a field is a valid number (including 0)
+    function isValidNumber(field) {
+      return field is number;
+    }
+
+    // ============================================
+    // USER PROFILES: /users/{uid}
+    // ============================================
+    match /users/{uid} {
+      // Users can only read their own profile
+      allow read: if isOwner(uid);
+
+      // Users can create their own profile
+      // Required: email, currency, createdAt, updatedAt
+      allow create: if isOwner(uid)
+                    && request.resource.data.keys().hasAll(['email', 'currency', 'createdAt', 'updatedAt'])
+                    && isNonEmptyString(request.resource.data.email)
+                    && isNonEmptyString(request.resource.data.currency)
+                    && isValidTimestamp(request.resource.data.createdAt)
+                    && isValidTimestamp(request.resource.data.updatedAt);
+
+      // Users can update their own profile
+      // Cannot change createdAt (immutable)
+      allow update: if isOwner(uid)
+                    && request.resource.data.createdAt == resource.data.createdAt
+                    && isValidTimestamp(request.resource.data.updatedAt);
+
+      // Users can delete their own profile
+      allow delete: if isOwner(uid);
+
+      // ============================================
+      // CLIENTS: /users/{uid}/clients/{clientId}
+      // ============================================
+      match /clients/{clientId} {
+        // Users can read their own clients
+        allow read: if isOwner(uid);
+
+        // Users can create clients
+        // Required: userId (must match auth), name, createdAt, updatedAt
+        allow create: if isOwner(uid)
+                      && request.resource.data.userId == request.auth.uid
+                      && isNonEmptyString(request.resource.data.name)
+                      && isValidTimestamp(request.resource.data.createdAt)
+                      && isValidTimestamp(request.resource.data.updatedAt);
+
+        // Users can update their own clients
+        // Cannot change userId or createdAt
+        allow update: if isOwner(uid)
+                      && request.resource.data.userId == resource.data.userId
+                      && request.resource.data.createdAt == resource.data.createdAt
+                      && isValidTimestamp(request.resource.data.updatedAt);
+
+        // Users can delete their own clients
+        allow delete: if isOwner(uid);
+      }
+
+      // ============================================
+      // EXPENSES: /users/{uid}/expenses/{expenseId}
+      // ============================================
+      match /expenses/{expenseId} {
+        // Users can read their own expenses
+        allow read: if isOwner(uid);
+
+        // Users can create expenses
+        // Required: userId (must match auth), amount, category, date, createdAt, updatedAt
+        allow create: if isOwner(uid)
+                      && request.resource.data.userId == request.auth.uid
+                      && isValidNumber(request.resource.data.amount)
+                      && isNonEmptyString(request.resource.data.category)
+                      && isValidTimestamp(request.resource.data.date)
+                      && isValidTimestamp(request.resource.data.createdAt)
+                      && isValidTimestamp(request.resource.data.updatedAt);
+
+        // Users can update their own expenses
+        // Cannot change userId or createdAt
+        allow update: if isOwner(uid)
+                      && request.resource.data.userId == resource.data.userId
+                      && request.resource.data.createdAt == resource.data.createdAt
+                      && isValidTimestamp(request.resource.data.updatedAt);
+
+        // Users can delete their own expenses
+        allow delete: if isOwner(uid);
+      }
+
+      // ============================================
+      // INVOICES: /users/{uid}/invoices/{invoiceId}
+      // ============================================
+      match /invoices/{invoiceId} {
+        // Users can read their own invoices
+        allow read: if isOwner(uid);
+
+        // Users can create invoices
+        // Required: userId (must match auth), clientId, status, createdAt, updatedAt
+        allow create: if isOwner(uid)
+                      && request.resource.data.userId == request.auth.uid
+                      && isNonEmptyString(request.resource.data.clientId)
+                      && isNonEmptyString(request.resource.data.status)
+                      && isValidTimestamp(request.resource.data.createdAt)
+                      && isValidTimestamp(request.resource.data.updatedAt);
+
+        // Users can update their own invoices
+        // Cannot change userId or createdAt
+        allow update: if isOwner(uid)
+                      && request.resource.data.userId == resource.data.userId
+                      && request.resource.data.createdAt == resource.data.createdAt
+                      && isValidTimestamp(request.resource.data.updatedAt);
+
+        // Users can delete their own invoices
+        allow delete: if isOwner(uid);
+      }
+    }
+
+    // ============================================
+    // INVOICE TEMPLATES: /invoiceTemplates/{templateId}
+    // Read-only for all authenticated users
+    // ============================================
+    match /invoiceTemplates/{templateId} {
+      allow read: if isAuthenticated();
+      allow write: if false; // Only admins via Firebase Console
+    }
+
+    // ============================================
+    // DEFAULT DENY
+    // All other paths are denied by default
+    // ============================================
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}
