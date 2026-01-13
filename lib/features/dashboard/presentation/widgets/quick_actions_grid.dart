@@ -6,13 +6,13 @@ class QuickAction {
   final String label;
   final IconData icon;
   final String route;
-  final Color? color;
+  final Color Function(ColorScheme) colorBuilder;
 
   const QuickAction({
     required this.label,
     required this.icon,
     required this.route,
-    this.color,
+    required this.colorBuilder,
   });
 }
 
@@ -20,30 +20,30 @@ class QuickAction {
 class QuickActionsGrid extends StatelessWidget {
   const QuickActionsGrid({super.key});
 
-  static const _actions = [
+  static final _actions = [
     QuickAction(
       label: 'New Invoice',
       icon: Icons.receipt_long,
       route: '/invoices/new',
-      color: Colors.blue,
+      colorBuilder: (scheme) => scheme.primary,
     ),
     QuickAction(
       label: 'Add Expense',
       icon: Icons.money_off,
       route: '/expenses/new',
-      color: Colors.red,
+      colorBuilder: (scheme) => scheme.error,
     ),
     QuickAction(
       label: 'Add Client',
       icon: Icons.person_add,
       route: '/clients/new',
-      color: Colors.green,
+      colorBuilder: (scheme) => scheme.tertiary,
     ),
     QuickAction(
       label: 'View Reports',
       icon: Icons.bar_chart,
       route: '/reports',
-      color: Colors.orange,
+      colorBuilder: (scheme) => scheme.secondary,
     ),
   ];
 
@@ -62,15 +62,22 @@ class QuickActionsGrid extends StatelessWidget {
                   ),
             ),
             const SizedBox(height: 16),
-            GridView.count(
-              crossAxisCount: 4,
-              shrinkWrap: true,
-              physics: const NeverScrollableScrollPhysics(),
-              mainAxisSpacing: 8,
-              crossAxisSpacing: 8,
-              children: _actions
-                  .map((action) => _QuickActionButton(action: action))
-                  .toList(),
+            LayoutBuilder(
+              builder: (context, constraints) {
+                // Use 2 columns on narrow screens, 4 on wider screens
+                final crossAxisCount = constraints.maxWidth < 300 ? 2 : 4;
+                return GridView.count(
+                  crossAxisCount: crossAxisCount,
+                  shrinkWrap: true,
+                  physics: const NeverScrollableScrollPhysics(),
+                  mainAxisSpacing: 8,
+                  crossAxisSpacing: 8,
+                  childAspectRatio: crossAxisCount == 2 ? 1.2 : 1.0,
+                  children: _actions
+                      .map((action) => _QuickActionButton(action: action))
+                      .toList(),
+                );
+              },
             ),
           ],
         ),
@@ -87,37 +94,41 @@ class _QuickActionButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final color = action.color ?? theme.colorScheme.primary;
+    final color = action.colorBuilder(theme.colorScheme);
 
-    return InkWell(
-      onTap: () => context.push(action.route),
-      borderRadius: BorderRadius.circular(12),
-      child: Container(
-        padding: const EdgeInsets.all(8),
-        decoration: BoxDecoration(
-          color: color.withOpacity(0.1),
-          borderRadius: BorderRadius.circular(12),
-        ),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(
-              action.icon,
-              color: color,
-              size: 28,
-            ),
-            const SizedBox(height: 4),
-            Text(
-              action.label,
-              style: theme.textTheme.labelSmall?.copyWith(
+    return Semantics(
+      button: true,
+      label: action.label,
+      child: InkWell(
+        onTap: () => context.push(action.route),
+        borderRadius: BorderRadius.circular(12),
+        child: Container(
+          padding: const EdgeInsets.all(8),
+          decoration: BoxDecoration(
+            color: color.withValues(alpha: 0.1),
+            borderRadius: BorderRadius.circular(12),
+          ),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(
+                action.icon,
                 color: color,
-                fontWeight: FontWeight.w500,
+                size: 28,
               ),
-              textAlign: TextAlign.center,
-              maxLines: 2,
-              overflow: TextOverflow.ellipsis,
-            ),
-          ],
+              const SizedBox(height: 4),
+              Text(
+                action.label,
+                style: theme.textTheme.labelSmall?.copyWith(
+                  color: color,
+                  fontWeight: FontWeight.w500,
+                ),
+                textAlign: TextAlign.center,
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+              ),
+            ],
+          ),
         ),
       ),
     );
