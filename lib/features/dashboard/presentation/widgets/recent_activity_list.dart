@@ -184,7 +184,7 @@ class _ActivityTile extends StatelessWidget {
 
   Color _getAmountColor(ActivityType type, ColorScheme scheme) {
     return switch (type) {
-      ActivityType.invoicePaid => Colors.green,
+      ActivityType.invoicePaid => scheme.tertiary,
       ActivityType.expenseAdded => scheme.error,
       _ => scheme.onSurface,
     };
