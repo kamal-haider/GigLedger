@@ -50,14 +50,32 @@ class _ClientFormPageState extends ConsumerState<ClientFormPage> {
     super.dispose();
   }
 
-  void _initializeForm(ClientFormState formState) {
-    if (!_isInitialized && !formState.isLoading) {
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (!_isInitialized) {
+      _isInitialized = true;
+      final notifier = ref.read(clientFormNotifierProvider.notifier);
+      if (isEditMode) {
+        // Schedule after frame to ensure provider is ready
+        Future.microtask(() => notifier.initForEdit(widget.clientId!));
+      } else {
+        notifier.initForCreate();
+      }
+    }
+  }
+
+  bool _controllersInitialized = false;
+
+  void _syncControllersWithState(ClientFormState formState) {
+    // Sync controllers once when data is loaded (for edit mode)
+    if (!_controllersInitialized && !formState.isLoading && formState.name.isNotEmpty) {
       _nameController.text = formState.name;
       _emailController.text = formState.email;
       _phoneController.text = formState.phone;
       _addressController.text = formState.address;
       _notesController.text = formState.notes;
-      _isInitialized = true;
+      _controllersInitialized = true;
     }
   }
 
@@ -133,21 +151,8 @@ class _ClientFormPageState extends ConsumerState<ClientFormPage> {
     final formState = ref.watch(clientFormNotifierProvider);
     final notifier = ref.read(clientFormNotifierProvider.notifier);
 
-    // Initialize form for create or edit mode
-    if (!_isInitialized) {
-      if (isEditMode) {
-        // Schedule initialization for edit mode after build
-        WidgetsBinding.instance.addPostFrameCallback((_) {
-          notifier.initForEdit(widget.clientId!);
-        });
-      } else {
-        notifier.initForCreate();
-        _isInitialized = true;
-      }
-    }
-
-    // Sync controllers with form state once loaded
-    _initializeForm(formState);
+    // Sync controllers with form state once loaded (for edit mode)
+    _syncControllersWithState(formState);
 
     // Show error snackbar if there's an error
     if (formState.errorMessage != null) {

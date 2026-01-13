@@ -95,6 +95,11 @@ class ClientFormNotifier extends StateNotifier<ClientFormState> {
 
   /// Initialize form for editing an existing client
   Future<void> initForEdit(String clientId) async {
+    if (_userId == null) {
+      state = state.copyWith(errorMessage: 'User not authenticated');
+      return;
+    }
+
     state = state.copyWith(isLoading: true, isEditMode: true, clearError: true);
     try {
       final client = await _repository.getById(clientId);
