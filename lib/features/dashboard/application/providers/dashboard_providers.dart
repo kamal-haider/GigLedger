@@ -33,11 +33,11 @@ final financialSummaryProvider = FutureProvider<FinancialSummary>((ref) {
 /// Stream provider for recent activity (real-time updates)
 final recentActivityStreamProvider = StreamProvider.autoDispose<List<RecentActivity>>((ref) {
   final repository = ref.watch(dashboardRepositoryProvider);
-  return repository.watchRecentActivity(limit: 5);
+  return repository.watchRecentActivity(limit: 10);
 });
 
 /// Future provider for recent activity (one-time fetch)
 final recentActivityProvider = FutureProvider<List<RecentActivity>>((ref) {
   final repository = ref.watch(dashboardRepositoryProvider);
-  return repository.getRecentActivity(limit: 5);
+  return repository.getRecentActivity(limit: 10);
 });

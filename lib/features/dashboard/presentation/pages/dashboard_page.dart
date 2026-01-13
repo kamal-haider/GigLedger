@@ -6,6 +6,7 @@ import '../../application/providers/dashboard_providers.dart';
 import '../../domain/models/financial_summary.dart';
 import '../widgets/financial_summary_card.dart';
 import '../widgets/quick_actions_grid.dart';
+import '../widgets/recent_activity_list.dart';
 
 /// Main dashboard page showing financial overview
 class DashboardPage extends ConsumerWidget {
@@ -27,6 +28,7 @@ class DashboardPage extends ConsumerWidget {
       body: RefreshIndicator(
         onRefresh: () async {
           ref.invalidate(financialSummaryStreamProvider);
+          ref.invalidate(recentActivityStreamProvider);
         },
         child: ListView(
           padding: const EdgeInsets.all(16),
@@ -64,8 +66,8 @@ class DashboardPage extends ConsumerWidget {
             const QuickActionsGrid(),
             const SizedBox(height: 24),
 
-            // Recent Activity placeholder (for #6)
-            _buildRecentActivityPlaceholder(context),
+            // Recent Activity
+            RecentActivityList(currencySymbol: currencySymbol),
           ],
         ),
       ),
@@ -102,34 +104,6 @@ class DashboardPage extends ConsumerWidget {
             ),
           ),
       ],
-    );
-  }
-
-  Widget _buildRecentActivityPlaceholder(BuildContext context) {
-    final theme = Theme.of(context);
-
-    return Card(
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              'Recent Activity',
-              style: theme.textTheme.titleMedium?.copyWith(
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-            const SizedBox(height: 12),
-            Text(
-              'Recent activity coming soon',
-              style: theme.textTheme.bodyMedium?.copyWith(
-                color: theme.colorScheme.onSurfaceVariant,
-              ),
-            ),
-          ],
-        ),
-      ),
     );
   }
 

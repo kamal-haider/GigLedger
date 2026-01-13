@@ -89,6 +89,17 @@ final routerProvider = Provider<GoRouter>((ref) {
                       message: 'Create invoice screen coming soon',
                     ),
                   ),
+                  GoRoute(
+                    path: ':id',
+                    name: 'invoice-detail',
+                    builder: (context, state) {
+                      final id = state.pathParameters['id']!;
+                      return PlaceholderScreen(
+                        title: 'Invoice',
+                        message: 'Invoice details for $id coming soon',
+                      );
+                    },
+                  ),
                 ],
               ),
             ],
@@ -110,6 +121,17 @@ final routerProvider = Provider<GoRouter>((ref) {
                       message: 'Add expense screen coming soon',
                     ),
                   ),
+                  GoRoute(
+                    path: ':id',
+                    name: 'expense-detail',
+                    builder: (context, state) {
+                      final id = state.pathParameters['id']!;
+                      return PlaceholderScreen(
+                        title: 'Expense',
+                        message: 'Expense details for $id coming soon',
+                      );
+                    },
+                  ),
                 ],
               ),
             ],
@@ -130,6 +152,17 @@ final routerProvider = Provider<GoRouter>((ref) {
                       title: 'New Client',
                       message: 'Add client screen coming soon',
                     ),
+                  ),
+                  GoRoute(
+                    path: ':id',
+                    name: 'client-detail',
+                    builder: (context, state) {
+                      final id = state.pathParameters['id']!;
+                      return PlaceholderScreen(
+                        title: 'Client',
+                        message: 'Client details for $id coming soon',
+                      );
+                    },
                   ),
                 ],
               ),
