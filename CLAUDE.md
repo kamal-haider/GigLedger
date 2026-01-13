@@ -108,6 +108,37 @@ gh issue list --label "post-mvp"
 
 **CRITICAL RULE: NEVER push directly to `main`. Always use feature branches and create pull requests.**
 
+### ⚠️ MANDATORY: Agent Pre-Commit Checklist
+
+**STOP! Before ANY commit, verify:**
+
+```
+□ Am I on a feature branch? (NOT main)
+  → Run: git branch --show-current
+  → If "main", STOP and create feature branch first!
+
+□ Does an issue exist for this work?
+  → If no, create one first with gh issue create
+
+□ Is the issue marked "in-progress"?
+  → If no, mark it: gh issue edit <num> --add-label "in-progress"
+```
+
+**If on main branch, fix immediately:**
+```bash
+# 1. Create the feature branch with your commits
+git branch feature/your-feature-name
+
+# 2. Reset main to origin
+git checkout main
+git reset --hard origin/main
+
+# 3. Switch to feature branch and continue
+git checkout feature/your-feature-name
+```
+
+**Branch protection is enabled** - Direct pushes to `main` will be rejected. See `docs/13_branch_protection_setup.md` for details.
+
 Branch naming format:
 ```
 feature/<descriptive-name>
