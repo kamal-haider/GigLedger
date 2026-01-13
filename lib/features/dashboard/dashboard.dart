@@ -17,3 +17,4 @@ export 'domain/repositories/i_dashboard_repository.dart';
 export 'presentation/pages/dashboard_page.dart';
 export 'presentation/widgets/financial_summary_card.dart';
 export 'presentation/widgets/quick_actions_grid.dart';
+export 'presentation/widgets/recent_activity_list.dart';
