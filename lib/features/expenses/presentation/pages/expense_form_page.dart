@@ -53,10 +53,11 @@ class _ExpenseFormPageState extends ConsumerState<ExpenseFormPage> {
     super.didChangeDependencies();
     if (!_isInitialized) {
       _isInitialized = true;
-      final formNotifier = ref.read(expenseFormProvider.notifier);
-      if (isEditMode) {
-        // Defer to avoid modifying provider during build
-        Future.microtask(() {
+      // Defer ALL provider modifications to avoid "modify during build" errors
+      Future.microtask(() {
+        if (!mounted) return;
+        final formNotifier = ref.read(expenseFormProvider.notifier);
+        if (isEditMode) {
           ref.read(expenseByIdProvider(widget.expenseId!)).whenData((expense) {
             if (expense != null && !_controllersInitialized) {
               formNotifier.initForEdit(expense);
@@ -66,10 +67,10 @@ class _ExpenseFormPageState extends ConsumerState<ExpenseFormPage> {
               _controllersInitialized = true;
             }
           });
-        });
-      } else {
-        formNotifier.initForCreate();
-      }
+        } else {
+          formNotifier.initForCreate();
+        }
+      });
     }
   }
 
