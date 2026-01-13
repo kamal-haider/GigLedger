@@ -111,6 +111,10 @@ class ExpenseFormNotifier extends StateNotifier<ExpenseFormState> {
     state = state.copyWith(date: date);
   }
 
+  void setReceiptUrl(String? receiptUrl) {
+    state = state.copyWith(existingReceiptUrl: receiptUrl);
+  }
+
   void clearError() {
     state = state.copyWith(clearErrorMessage: true);
   }
