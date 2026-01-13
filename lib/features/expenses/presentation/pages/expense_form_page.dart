@@ -115,6 +115,7 @@ class _ExpenseFormPageState extends ConsumerState<ExpenseFormPage> {
     if (!_formKey.currentState!.validate()) return;
 
     final formNotifier = ref.read(expenseFormProvider.notifier);
+    final formState = ref.read(expenseFormProvider);
 
     // Update form state from controllers
     final amount = double.tryParse(_amountController.text.replaceAll(',', ''));
@@ -128,14 +129,29 @@ class _ExpenseFormPageState extends ConsumerState<ExpenseFormPage> {
       // Check if there's a local image pending upload
       final receiptState = ref.read(receiptUploadProvider(widget.expenseId));
       if (receiptState.localImagePath != null) {
-        // Upload the receipt image
         final receiptNotifier = ref.read(receiptUploadProvider(widget.expenseId).notifier);
+
+        // Delete old receipt if replacing (edit mode with existing receipt)
+        if (formState.existingReceiptUrl != null) {
+          await receiptNotifier.deleteReceipt(savedExpense.id);
+        }
+
+        // Upload the new receipt image
         final receiptUrl = await receiptNotifier.uploadReceipt(savedExpense.id);
 
         if (receiptUrl != null && mounted) {
           // Update the expense with the receipt URL
           final expenseNotifier = ref.read(expenseNotifierProvider.notifier);
           await expenseNotifier.updateExpense(savedExpense.copyWith(receiptUrl: receiptUrl));
+        } else if (mounted) {
+          // Upload failed - notify user but expense was saved
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: const Text('Expense saved but receipt upload failed. You can add it later.'),
+              behavior: SnackBarBehavior.floating,
+              backgroundColor: Theme.of(context).colorScheme.error,
+            ),
+          );
         }
       }
 
