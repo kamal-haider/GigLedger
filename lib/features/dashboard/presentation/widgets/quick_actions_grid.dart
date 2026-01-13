@@ -72,7 +72,7 @@ class QuickActionsGrid extends StatelessWidget {
                   physics: const NeverScrollableScrollPhysics(),
                   mainAxisSpacing: 8,
                   crossAxisSpacing: 8,
-                  childAspectRatio: crossAxisCount == 2 ? 1.2 : 1.0,
+                  childAspectRatio: crossAxisCount == 2 ? 1.2 : 0.85,
                   children: _actions
                       .map((action) => _QuickActionButton(action: action))
                       .toList(),

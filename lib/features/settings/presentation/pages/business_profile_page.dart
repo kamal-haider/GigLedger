@@ -1,12 +1,14 @@
 import 'dart:io';
 
 import 'package:firebase_storage/firebase_storage.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:image_picker/image_picker.dart';
 
+import '../../../../core/utils/seed_data.dart';
 import '../../../auth/application/providers/auth_providers.dart';
 import '../../application/providers/settings_providers.dart';
 import '../widgets/currency_selector.dart';
@@ -326,6 +328,85 @@ class _BusinessProfilePageState extends ConsumerState<BusinessProfilePage> {
     }
   }
 
+  Future<void> _seedTestData(BuildContext context) async {
+    try {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Seeding test data...'),
+          duration: Duration(seconds: 1),
+        ),
+      );
+      await SeedData.seedTestData();
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Test data added successfully!'),
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Failed to seed data: $e'),
+            behavior: SnackBarBehavior.floating,
+            backgroundColor: Theme.of(context).colorScheme.error,
+          ),
+        );
+      }
+    }
+  }
+
+  Future<void> _clearTestData(BuildContext context) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Clear All Data'),
+        content: const Text(
+          'This will delete ALL invoices, expenses, and clients. This cannot be undone.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(false),
+            child: const Text('Cancel'),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.of(context).pop(true),
+            style: FilledButton.styleFrom(
+              backgroundColor: Theme.of(context).colorScheme.error,
+            ),
+            child: const Text('Delete All'),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed == true && mounted) {
+      try {
+        await SeedData.clearTestData();
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('All data cleared successfully!'),
+              behavior: SnackBarBehavior.floating,
+            ),
+          );
+        }
+      } catch (e) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('Failed to clear data: $e'),
+              behavior: SnackBarBehavior.floating,
+              backgroundColor: Theme.of(context).colorScheme.error,
+            ),
+          );
+        }
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
@@ -502,6 +583,42 @@ class _BusinessProfilePageState extends ConsumerState<BusinessProfilePage> {
                   const SizedBox(height: 32),
                   const Divider(),
                   const SizedBox(height: 16),
+
+                  // Debug section (only in debug mode)
+                  if (kDebugMode) ...[
+                    Text(
+                      'Developer Options',
+                      style: theme.textTheme.labelLarge?.copyWith(
+                        color: theme.colorScheme.onSurfaceVariant,
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: OutlinedButton.icon(
+                            onPressed: () => _seedTestData(context),
+                            icon: const Icon(Icons.add_box),
+                            label: const Text('Seed Test Data'),
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: OutlinedButton.icon(
+                            onPressed: () => _clearTestData(context),
+                            icon: const Icon(Icons.delete_sweep),
+                            label: const Text('Clear Data'),
+                            style: OutlinedButton.styleFrom(
+                              foregroundColor: theme.colorScheme.error,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 16),
+                    const Divider(),
+                    const SizedBox(height: 16),
+                  ],
 
                   // Sign out button
                   OutlinedButton.icon(
