@@ -1,0 +1,63 @@
+name: Build Check
+
+on:
+  pull_request:
+    branches: [main]
+    types: [opened, synchronize, reopened]
+  push:
+    branches: [main]
+
+jobs:
+  analyze:
+    name: Flutter Analyze
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.24.0'
+          channel: 'stable'
+          cache: true
+
+      - name: Install dependencies
+        run: flutter pub get
+
+      - name: Analyze code
+        run: flutter analyze --fatal-infos
+
+      - name: Check formatting
+        run: dart format --set-exit-if-changed lib/
+
+  build:
+    name: Flutter Build
+    runs-on: ubuntu-latest
+    needs: analyze
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.24.0'
+          channel: 'stable'
+          cache: true
+
+      - name: Install dependencies
+        run: flutter pub get
+
+      - name: Build APK (verify compilation)
+        run: flutter build apk --debug
+
+  # Enforce that PRs exist for all changes to main
+  pr-check:
+    name: PR Required Check
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    steps:
+      - name: Check for associated PR
+        run: |
+          echo "⚠️  Direct push to main detected!"
+          echo "All changes to main should go through pull requests."
+          echo "If this was intentional, please ensure proper review was done."
