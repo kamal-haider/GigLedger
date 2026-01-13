@@ -85,12 +85,21 @@ class FinancialSummary {
           incomeThisMonth == other.incomeThisMonth &&
           incomeYTD == other.incomeYTD &&
           expensesThisMonth == other.expensesThisMonth &&
-          expensesYTD == other.expensesYTD;
+          expensesYTD == other.expensesYTD &&
+          pendingInvoices == other.pendingInvoices &&
+          pendingAmount == other.pendingAmount &&
+          overdueInvoices == other.overdueInvoices &&
+          overdueAmount == other.overdueAmount;
 
   @override
-  int get hashCode =>
-      incomeThisMonth.hashCode ^
-      incomeYTD.hashCode ^
-      expensesThisMonth.hashCode ^
-      expensesYTD.hashCode;
+  int get hashCode => Object.hash(
+        incomeThisMonth,
+        incomeYTD,
+        expensesThisMonth,
+        expensesYTD,
+        pendingInvoices,
+        pendingAmount,
+        overdueInvoices,
+        overdueAmount,
+      );
 }

@@ -65,3 +65,4 @@ coverage/
 # Generated files
 *.g.dart
 *.freezed.dart
+ios/Podfile.lock
