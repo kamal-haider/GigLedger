@@ -92,9 +92,9 @@ class ExpenseListPage extends ConsumerWidget {
                     return ExpenseListTile(
                       expense: expense,
                       onTap: () {
-                        // TODO: Navigate to expense details
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(content: Text('View ${expense.description}')),
+                        context.pushNamed(
+                          'expense-detail',
+                          pathParameters: {'id': expense.id},
                         );
                       },
                     );

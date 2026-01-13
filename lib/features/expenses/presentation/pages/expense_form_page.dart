@@ -28,6 +28,7 @@ class _ExpenseFormPageState extends ConsumerState<ExpenseFormPage> {
   late TextEditingController _descriptionController;
   late TextEditingController _vendorController;
   bool _isInitialized = false;
+  bool _controllersInitialized = false;
 
   bool get isEditMode => widget.expenseId != null;
 
@@ -47,26 +48,50 @@ class _ExpenseFormPageState extends ConsumerState<ExpenseFormPage> {
     super.dispose();
   }
 
-  void _initializeForm() {
-    if (_isInitialized) return;
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (!_isInitialized) {
+      _isInitialized = true;
+      // Defer ALL provider modifications to avoid "modify during build" errors
+      Future.microtask(() {
+        if (!mounted) return;
+        final formNotifier = ref.read(expenseFormProvider.notifier);
+        if (isEditMode) {
+          ref.read(expenseByIdProvider(widget.expenseId!)).whenData((expense) {
+            if (expense != null && !_controllersInitialized) {
+              formNotifier.initForEdit(expense);
+              _amountController.text = expense.amount.toStringAsFixed(2);
+              _descriptionController.text = expense.description;
+              _vendorController.text = expense.vendor ?? '';
+              _controllersInitialized = true;
+            }
+          });
+        } else {
+          formNotifier.initForCreate();
+        }
+      });
+    }
+  }
 
-    final formNotifier = ref.read(expenseFormProvider.notifier);
-
-    if (isEditMode) {
-      // Load existing expense for editing
+  void _syncControllersWithExpense() {
+    // For edit mode: sync controllers and form state when expense data is loaded
+    if (isEditMode && !_controllersInitialized) {
       ref.read(expenseByIdProvider(widget.expenseId!)).whenData((expense) {
-        if (expense != null && !_isInitialized) {
-          formNotifier.initForEdit(expense);
+        if (expense != null && !_controllersInitialized) {
+          _controllersInitialized = true;
+          // Sync text controllers (safe during build)
           _amountController.text = expense.amount.toStringAsFixed(2);
           _descriptionController.text = expense.description;
           _vendorController.text = expense.vendor ?? '';
-          _isInitialized = true;
+          // Defer provider modification to after build
+          Future.microtask(() {
+            if (mounted) {
+              ref.read(expenseFormProvider.notifier).initForEdit(expense);
+            }
+          });
         }
       });
-    } else {
-      // Initialize for new expense
-      formNotifier.initForCreate();
-      _isInitialized = true;
     }
   }
 
@@ -127,11 +152,11 @@ class _ExpenseFormPageState extends ConsumerState<ExpenseFormPage> {
       }
     });
 
-    // Initialize form
-    _initializeForm();
+    // Sync controllers with expense data (for edit mode)
+    _syncControllersWithExpense();
 
     // Show loading when editing and expense is being fetched
-    if (isEditMode && !_isInitialized) {
+    if (isEditMode && !_controllersInitialized) {
       final expenseAsync = ref.watch(expenseByIdProvider(widget.expenseId!));
       return Scaffold(
         appBar: AppBar(
