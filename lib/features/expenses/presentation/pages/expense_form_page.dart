@@ -75,10 +75,13 @@ class _ExpenseFormPageState extends ConsumerState<ExpenseFormPage> {
   }
 
   void _syncControllersWithExpense() {
-    // For edit mode: sync controllers when expense data is loaded
+    // For edit mode: sync controllers and form state when expense data is loaded
     if (isEditMode && !_controllersInitialized) {
       ref.read(expenseByIdProvider(widget.expenseId!)).whenData((expense) {
         if (expense != null && !_controllersInitialized) {
+          // Initialize form state for edit mode
+          ref.read(expenseFormProvider.notifier).initForEdit(expense);
+          // Sync text controllers
           _amountController.text = expense.amount.toStringAsFixed(2);
           _descriptionController.text = expense.description;
           _vendorController.text = expense.vendor ?? '';
