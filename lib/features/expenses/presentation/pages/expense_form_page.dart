@@ -210,6 +210,9 @@ class _ExpenseFormPageState extends ConsumerState<ExpenseFormPage> {
                 if (amount == null || amount <= 0) {
                   return 'Please enter a valid amount';
                 }
+                if (amount > 999999999.99) {
+                  return 'Amount is too large';
+                }
                 return null;
               },
               autofocus: !isEditMode,
@@ -218,7 +221,6 @@ class _ExpenseFormPageState extends ConsumerState<ExpenseFormPage> {
 
             // Category dropdown
             DropdownButtonFormField<ExpenseCategory>(
-              // ignore: deprecated_member_use
               value: formState.category,
               decoration: InputDecoration(
                 labelText: 'Category',
