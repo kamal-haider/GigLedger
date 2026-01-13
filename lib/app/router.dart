@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import '../features/auth/application/providers/auth_providers.dart';
 import '../features/auth/presentation/pages/email_sign_in_page.dart';
 import '../features/auth/presentation/pages/login_page.dart';
+import '../features/clients/presentation/pages/client_form_page.dart';
 import '../features/clients/presentation/pages/client_list_page.dart';
 import '../features/dashboard/presentation/pages/dashboard_page.dart';
 import '../features/expenses/presentation/pages/expense_form_page.dart';
@@ -143,20 +144,14 @@ final routerProvider = Provider<GoRouter>((ref) {
                   GoRoute(
                     path: 'new',
                     name: 'new-client',
-                    builder: (context, state) => const PlaceholderScreen(
-                      title: 'New Client',
-                      message: 'Add client screen coming soon',
-                    ),
+                    builder: (context, state) => const ClientFormPage(),
                   ),
                   GoRoute(
                     path: ':id',
                     name: 'client-detail',
                     builder: (context, state) {
                       final id = state.pathParameters['id']!;
-                      return PlaceholderScreen(
-                        title: 'Client',
-                        message: 'Client details for $id coming soon',
-                      );
+                      return ClientFormPage(clientId: id);
                     },
                   ),
                 ],
