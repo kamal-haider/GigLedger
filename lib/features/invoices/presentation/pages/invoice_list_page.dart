@@ -9,11 +9,35 @@ import '../widgets/invoice_filter_bar.dart';
 import '../widgets/invoice_list_tile.dart';
 
 /// Invoice list page showing all invoices with filtering
-class InvoiceListPage extends ConsumerWidget {
+class InvoiceListPage extends ConsumerStatefulWidget {
   const InvoiceListPage({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<InvoiceListPage> createState() => _InvoiceListPageState();
+}
+
+class _InvoiceListPageState extends ConsumerState<InvoiceListPage> {
+  final _searchController = TextEditingController();
+  bool _isSearching = false;
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
+  }
+
+  void _startSearch() {
+    setState(() => _isSearching = true);
+  }
+
+  void _stopSearch() {
+    setState(() => _isSearching = false);
+    _searchController.clear();
+    ref.read(invoiceSearchTermProvider.notifier).state = '';
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final filteredInvoices = ref.watch(filteredInvoicesProvider);
     final selectedStatus = ref.watch(invoiceStatusFilterProvider);
     final dateRange = ref.watch(invoiceDateRangeProvider);
@@ -21,7 +45,37 @@ class InvoiceListPage extends ConsumerWidget {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Invoices'),
+        title: _isSearching
+            ? TextField(
+                controller: _searchController,
+                autofocus: true,
+                decoration: InputDecoration(
+                  hintText: 'Search by client or invoice #',
+                  border: InputBorder.none,
+                  hintStyle: TextStyle(
+                    color: theme.colorScheme.onSurface.withValues(alpha: 0.5),
+                  ),
+                ),
+                style: theme.textTheme.titleMedium,
+                onChanged: (value) {
+                  ref.read(invoiceSearchTermProvider.notifier).state = value;
+                },
+              )
+            : const Text('Invoices'),
+        actions: [
+          if (_isSearching)
+            IconButton(
+              icon: const Icon(Icons.close),
+              tooltip: 'Clear search',
+              onPressed: _stopSearch,
+            )
+          else
+            IconButton(
+              icon: const Icon(Icons.search),
+              tooltip: 'Search invoices',
+              onPressed: _startSearch,
+            ),
+        ],
       ),
       body: Column(
         children: [
@@ -103,7 +157,7 @@ class InvoiceListPage extends ConsumerWidget {
             child: filteredInvoices.when(
               data: (invoices) {
                 if (invoices.isEmpty) {
-                  return _buildEmptyState(context, ref);
+                  return _buildEmptyState(context);
                 }
                 return ListView.builder(
                   itemCount: invoices.length,
@@ -159,33 +213,41 @@ class InvoiceListPage extends ConsumerWidget {
     );
   }
 
-  Widget _buildEmptyState(BuildContext context, WidgetRef ref) {
+  Widget _buildEmptyState(BuildContext context) {
     final theme = Theme.of(context);
     final hasFilters = ref.watch(invoiceStatusFilterProvider) != null ||
         ref.watch(invoiceDateRangeProvider) != null;
+    final searchTerm = ref.watch(invoiceSearchTermProvider);
+    final hasSearch = searchTerm.isNotEmpty;
 
-    if (hasFilters) {
+    if (hasFilters || hasSearch) {
       return Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Icon(
-              Icons.filter_list_off,
+              hasSearch ? Icons.search_off : Icons.filter_list_off,
               size: 64,
               color: theme.colorScheme.onSurfaceVariant,
             ),
             const SizedBox(height: 16),
             Text(
-              'No invoices match filters',
+              hasSearch
+                  ? 'No invoices match "$searchTerm"'
+                  : 'No invoices match filters',
               style: theme.textTheme.titleLarge,
+              textAlign: TextAlign.center,
             ),
             const SizedBox(height: 8),
             TextButton(
               onPressed: () {
                 ref.read(invoiceStatusFilterProvider.notifier).state = null;
                 ref.read(invoiceDateRangeProvider.notifier).state = null;
+                ref.read(invoiceSearchTermProvider.notifier).state = '';
+                _searchController.clear();
+                setState(() => _isSearching = false);
               },
-              child: const Text('Clear Filters'),
+              child: const Text('Clear All Filters'),
             ),
           ],
         ),

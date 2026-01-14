@@ -45,6 +45,9 @@ final invoiceStatusFilterProvider =
 /// Date range filter for invoices
 final invoiceDateRangeProvider = StateProvider<DateTimeRange?>((ref) => null);
 
+/// Search term filter for invoices
+final invoiceSearchTermProvider = StateProvider<String>((ref) => '');
+
 /// Helper to normalize DateTime to start of day for inclusive date comparisons
 DateTime _startOfDay(DateTime date) =>
     DateTime(date.year, date.month, date.day);
@@ -53,25 +56,39 @@ DateTime _startOfDay(DateTime date) =>
 DateTime _endOfDay(DateTime date) =>
     DateTime(date.year, date.month, date.day, 23, 59, 59, 999);
 
-/// Filtered invoices based on status and date range
+/// Filtered invoices based on status, date range, and search term
 final filteredInvoicesProvider = Provider<AsyncValue<List<Invoice>>>((ref) {
   final invoicesAsync = ref.watch(invoicesStreamProvider);
   final statusFilter = ref.watch(invoiceStatusFilterProvider);
   final dateRange = ref.watch(invoiceDateRangeProvider);
+  final searchTerm = ref.watch(invoiceSearchTermProvider).toLowerCase().trim();
 
   return invoicesAsync.whenData((invoices) {
     var filtered = invoices;
 
+    // Filter by status
     if (statusFilter != null) {
       filtered = filtered.where((inv) => inv.status == statusFilter).toList();
     }
 
+    // Filter by date range
     if (dateRange != null) {
       final rangeStart = _startOfDay(dateRange.start);
       final rangeEnd = _endOfDay(dateRange.end);
       filtered = filtered.where((inv) {
         final issueDate = inv.issueDate;
         return !issueDate.isBefore(rangeStart) && !issueDate.isAfter(rangeEnd);
+      }).toList();
+    }
+
+    // Filter by search term (client name or invoice number)
+    if (searchTerm.isNotEmpty) {
+      filtered = filtered.where((inv) {
+        final clientNameMatch =
+            inv.clientName.toLowerCase().contains(searchTerm);
+        final invoiceNumberMatch =
+            inv.invoiceNumber.toLowerCase().contains(searchTerm);
+        return clientNameMatch || invoiceNumberMatch;
       }).toList();
     }
 
