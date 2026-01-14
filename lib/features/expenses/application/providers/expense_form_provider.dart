@@ -57,7 +57,8 @@ class ExpenseFormState {
       vendor: clearVendor ? null : (vendor ?? this.vendor),
       date: date ?? this.date,
       isLoading: isLoading ?? this.isLoading,
-      errorMessage: clearErrorMessage ? null : (errorMessage ?? this.errorMessage),
+      errorMessage:
+          clearErrorMessage ? null : (errorMessage ?? this.errorMessage),
       isSaved: isSaved ?? this.isSaved,
       existingExpenseId: existingExpenseId ?? this.existingExpenseId,
       existingReceiptUrl: existingReceiptUrl ?? this.existingReceiptUrl,
@@ -70,7 +71,8 @@ class ExpenseFormState {
 class ExpenseFormNotifier extends StateNotifier<ExpenseFormState> {
   final Ref _ref;
 
-  ExpenseFormNotifier(this._ref) : super(ExpenseFormState(date: DateTime.now()));
+  ExpenseFormNotifier(this._ref)
+      : super(ExpenseFormState(date: DateTime.now()));
 
   /// Initialize the form for creating a new expense
   void initForCreate() {
@@ -104,7 +106,8 @@ class ExpenseFormNotifier extends StateNotifier<ExpenseFormState> {
   }
 
   void setVendor(String? vendor) {
-    state = state.copyWith(vendor: vendor, clearVendor: vendor == null || vendor.isEmpty);
+    state = state.copyWith(
+        vendor: vendor, clearVendor: vendor == null || vendor.isEmpty);
   }
 
   void setDate(DateTime date) {
@@ -213,6 +216,7 @@ class ExpenseFormNotifier extends StateNotifier<ExpenseFormState> {
 
 /// Provider for expense form state
 final expenseFormProvider =
-    StateNotifierProvider.autoDispose<ExpenseFormNotifier, ExpenseFormState>((ref) {
+    StateNotifierProvider.autoDispose<ExpenseFormNotifier, ExpenseFormState>(
+        (ref) {
   return ExpenseFormNotifier(ref);
 });

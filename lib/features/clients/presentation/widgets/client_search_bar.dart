@@ -24,7 +24,8 @@ class ClientSearchBar extends StatelessWidget {
             borderRadius: BorderRadius.circular(12),
           ),
           filled: true,
-          contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+          contentPadding:
+              const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
         ),
       ),
     );

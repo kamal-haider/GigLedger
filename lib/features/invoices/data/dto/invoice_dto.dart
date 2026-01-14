@@ -129,7 +129,9 @@ class InvoiceDTO {
 
   List<LineItem> _parseLineItems() {
     if (lineItems == null) return [];
-    return lineItems!.map((json) => LineItemDTO.fromJson(json).toDomain()).toList();
+    return lineItems!
+        .map((json) => LineItemDTO.fromJson(json).toDomain())
+        .toList();
   }
 
   InvoiceStatus _parseStatus(String? value) {

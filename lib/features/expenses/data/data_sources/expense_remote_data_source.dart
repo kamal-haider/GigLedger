@@ -39,7 +39,8 @@ class ExpenseRemoteDataSourceImpl implements ExpenseRemoteDataSource {
   String get _userId {
     final user = _firebaseAuth.currentUser;
     if (user == null) {
-      throw const AuthException('User not authenticated', code: 'not-authenticated');
+      throw const AuthException('User not authenticated',
+          code: 'not-authenticated');
     }
     return user.uid;
   }
@@ -50,14 +51,14 @@ class ExpenseRemoteDataSourceImpl implements ExpenseRemoteDataSource {
   @override
   Future<List<ExpenseDTO>> getAll() async {
     try {
-      final snapshot = await _expensesCollection
-          .orderBy('date', descending: true)
-          .get();
+      final snapshot =
+          await _expensesCollection.orderBy('date', descending: true).get();
       return snapshot.docs
           .map((doc) => ExpenseDTO.fromJson(doc.data(), doc.id))
           .toList();
     } catch (e) {
-      throw ServerException('Failed to get expenses: $e', code: 'firestore-read-error');
+      throw ServerException('Failed to get expenses: $e',
+          code: 'firestore-read-error');
     }
   }
 
@@ -73,7 +74,8 @@ class ExpenseRemoteDataSourceImpl implements ExpenseRemoteDataSource {
           .map((doc) => ExpenseDTO.fromJson(doc.data(), doc.id))
           .toList();
     } catch (e) {
-      throw ServerException('Failed to get expenses: $e', code: 'firestore-read-error');
+      throw ServerException('Failed to get expenses: $e',
+          code: 'firestore-read-error');
     }
   }
 
@@ -84,7 +86,8 @@ class ExpenseRemoteDataSourceImpl implements ExpenseRemoteDataSource {
       if (!doc.exists || doc.data() == null) return null;
       return ExpenseDTO.fromJson(doc.data()!, doc.id);
     } catch (e) {
-      throw ServerException('Failed to get expense: $e', code: 'firestore-read-error');
+      throw ServerException('Failed to get expense: $e',
+          code: 'firestore-read-error');
     }
   }
 
@@ -119,7 +122,8 @@ class ExpenseRemoteDataSourceImpl implements ExpenseRemoteDataSource {
       final doc = await docRef.get();
       return ExpenseDTO.fromJson(doc.data()!, doc.id);
     } catch (e) {
-      throw ServerException('Failed to create expense: $e', code: 'firestore-write-error');
+      throw ServerException('Failed to create expense: $e',
+          code: 'firestore-write-error');
     }
   }
 
@@ -144,7 +148,8 @@ class ExpenseRemoteDataSourceImpl implements ExpenseRemoteDataSource {
       return ExpenseDTO.fromJson(doc.data()!, doc.id);
     } catch (e) {
       if (e is AuthException) rethrow;
-      throw ServerException('Failed to update expense: $e', code: 'firestore-write-error');
+      throw ServerException('Failed to update expense: $e',
+          code: 'firestore-write-error');
     }
   }
 
@@ -168,7 +173,8 @@ class ExpenseRemoteDataSourceImpl implements ExpenseRemoteDataSource {
       // Delete the expense document
       await _expensesCollection.doc(id).delete();
     } catch (e) {
-      throw ServerException('Failed to delete expense: $e', code: 'firestore-write-error');
+      throw ServerException('Failed to delete expense: $e',
+          code: 'firestore-write-error');
     }
   }
 
@@ -208,8 +214,8 @@ class ExpenseRemoteDataSourceImpl implements ExpenseRemoteDataSource {
       }
 
       // Validate file type
-      final extension = filePath.toLowerCase().substring(
-          filePath.lastIndexOf('.'));
+      final extension =
+          filePath.toLowerCase().substring(filePath.lastIndexOf('.'));
       if (!_allowedExtensions.contains(extension)) {
         throw ServerException(
           'Invalid file type. Allowed: ${_allowedExtensions.join(", ")}',
@@ -222,7 +228,8 @@ class ExpenseRemoteDataSourceImpl implements ExpenseRemoteDataSource {
       return await ref.getDownloadURL();
     } catch (e) {
       if (e is ServerException) rethrow;
-      throw ServerException('Failed to upload receipt: $e', code: 'storage-upload-error');
+      throw ServerException('Failed to upload receipt: $e',
+          code: 'storage-upload-error');
     }
   }
 
@@ -232,7 +239,8 @@ class ExpenseRemoteDataSourceImpl implements ExpenseRemoteDataSource {
       final ref = _storage.refFromURL(receiptUrl);
       await ref.delete();
     } catch (e) {
-      throw ServerException('Failed to delete receipt: $e', code: 'storage-delete-error');
+      throw ServerException('Failed to delete receipt: $e',
+          code: 'storage-delete-error');
     }
   }
 
@@ -242,7 +250,8 @@ class ExpenseRemoteDataSourceImpl implements ExpenseRemoteDataSource {
       final snapshot = await _expensesCollection.count().get();
       return snapshot.count ?? 0;
     } catch (e) {
-      throw ServerException('Failed to get expense count: $e', code: 'firestore-read-error');
+      throw ServerException('Failed to get expense count: $e',
+          code: 'firestore-read-error');
     }
   }
 
@@ -254,13 +263,15 @@ class ExpenseRemoteDataSourceImpl implements ExpenseRemoteDataSource {
       final endOfMonth = DateTime(now.year, now.month + 1, 0, 23, 59, 59);
 
       final snapshot = await _expensesCollection
-          .where('date', isGreaterThanOrEqualTo: Timestamp.fromDate(startOfMonth))
+          .where('date',
+              isGreaterThanOrEqualTo: Timestamp.fromDate(startOfMonth))
           .where('date', isLessThanOrEqualTo: Timestamp.fromDate(endOfMonth))
           .count()
           .get();
       return snapshot.count ?? 0;
     } catch (e) {
-      throw ServerException('Failed to get monthly count: $e', code: 'firestore-read-error');
+      throw ServerException('Failed to get monthly count: $e',
+          code: 'firestore-read-error');
     }
   }
 }

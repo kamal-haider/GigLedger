@@ -7,7 +7,8 @@ import '../../domain/models/expense.dart';
 import '../../domain/repositories/i_expense_repository.dart';
 
 /// Provider for expense data source
-final expenseRemoteDataSourceProvider = Provider<ExpenseRemoteDataSource>((ref) {
+final expenseRemoteDataSourceProvider =
+    Provider<ExpenseRemoteDataSource>((ref) {
   return ExpenseRemoteDataSourceImpl();
 });
 
@@ -31,13 +32,15 @@ final expenseByIdProvider = FutureProvider.family<Expense?, String>((ref, id) {
 });
 
 /// Selected category filter
-final expenseCategoryFilterProvider = StateProvider<ExpenseCategory?>((ref) => null);
+final expenseCategoryFilterProvider =
+    StateProvider<ExpenseCategory?>((ref) => null);
 
 /// Date range filter (uses Flutter's built-in DateTimeRange)
 final expenseDateRangeProvider = StateProvider<DateTimeRange?>((ref) => null);
 
 /// Helper to normalize DateTime to start of day for inclusive date comparisons
-DateTime _startOfDay(DateTime date) => DateTime(date.year, date.month, date.day);
+DateTime _startOfDay(DateTime date) =>
+    DateTime(date.year, date.month, date.day);
 
 /// Helper to normalize DateTime to end of day for inclusive date comparisons
 DateTime _endOfDay(DateTime date) =>
@@ -61,7 +64,8 @@ final filteredExpensesProvider = Provider<AsyncValue<List<Expense>>>((ref) {
       final rangeEnd = _endOfDay(dateRange.end);
       filtered = filtered.where((e) {
         final expenseDate = e.date;
-        return !expenseDate.isBefore(rangeStart) && !expenseDate.isAfter(rangeEnd);
+        return !expenseDate.isBefore(rangeStart) &&
+            !expenseDate.isAfter(rangeEnd);
       }).toList();
     }
 

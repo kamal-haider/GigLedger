@@ -103,7 +103,8 @@ class InvoiceRepositoryImpl implements IInvoiceRepository {
   @override
   Future<Invoice> markAsSent(String id) async {
     try {
-      final dto = await _remoteDataSource.updateStatus(id, InvoiceStatus.sent.name);
+      final dto =
+          await _remoteDataSource.updateStatus(id, InvoiceStatus.sent.name);
       return dto.toDomain();
     } on ServerException catch (e) {
       throw ServerFailure(e.message, code: e.code);

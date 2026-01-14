@@ -121,7 +121,8 @@ class _ExpenseFormPageState extends ConsumerState<ExpenseFormPage> {
     final amount = double.tryParse(_amountController.text.replaceAll(',', ''));
     formNotifier.setAmount(amount);
     formNotifier.setDescription(_descriptionController.text);
-    formNotifier.setVendor(_vendorController.text.isEmpty ? null : _vendorController.text);
+    formNotifier.setVendor(
+        _vendorController.text.isEmpty ? null : _vendorController.text);
 
     final savedExpense = await formNotifier.saveExpense();
 
@@ -129,7 +130,8 @@ class _ExpenseFormPageState extends ConsumerState<ExpenseFormPage> {
       // Check if there's a local image pending upload
       final receiptState = ref.read(receiptUploadProvider(widget.expenseId));
       if (receiptState.localImagePath != null) {
-        final receiptNotifier = ref.read(receiptUploadProvider(widget.expenseId).notifier);
+        final receiptNotifier =
+            ref.read(receiptUploadProvider(widget.expenseId).notifier);
 
         // Delete old receipt if replacing (edit mode with existing receipt)
         if (formState.existingReceiptUrl != null) {
@@ -142,12 +144,14 @@ class _ExpenseFormPageState extends ConsumerState<ExpenseFormPage> {
         if (receiptUrl != null && mounted) {
           // Update the expense with the receipt URL
           final expenseNotifier = ref.read(expenseNotifierProvider.notifier);
-          await expenseNotifier.updateExpense(savedExpense.copyWith(receiptUrl: receiptUrl));
+          await expenseNotifier
+              .updateExpense(savedExpense.copyWith(receiptUrl: receiptUrl));
         } else if (mounted) {
           // Upload failed - notify user but expense was saved
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: const Text('Expense saved but receipt upload failed. You can add it later.'),
+              content: const Text(
+                  'Expense saved but receipt upload failed. You can add it later.'),
               behavior: SnackBarBehavior.floating,
               backgroundColor: Theme.of(context).colorScheme.error,
             ),
@@ -174,7 +178,8 @@ class _ExpenseFormPageState extends ConsumerState<ExpenseFormPage> {
 
     // Handle error messages
     ref.listen<ExpenseFormState>(expenseFormProvider, (prev, next) {
-      if (next.errorMessage != null && next.errorMessage != prev?.errorMessage) {
+      if (next.errorMessage != null &&
+          next.errorMessage != prev?.errorMessage) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(next.errorMessage!),
@@ -209,12 +214,14 @@ class _ExpenseFormPageState extends ConsumerState<ExpenseFormPage> {
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Icon(Icons.error_outline, size: 48, color: theme.colorScheme.error),
+                Icon(Icons.error_outline,
+                    size: 48, color: theme.colorScheme.error),
                 const SizedBox(height: 16),
                 Text('Failed to load expense'),
                 const SizedBox(height: 8),
                 TextButton(
-                  onPressed: () => ref.refresh(expenseByIdProvider(widget.expenseId!)),
+                  onPressed: () =>
+                      ref.refresh(expenseByIdProvider(widget.expenseId!)),
                   child: const Text('Retry'),
                 ),
               ],
@@ -257,7 +264,8 @@ class _ExpenseFormPageState extends ConsumerState<ExpenseFormPage> {
                 prefixIcon: const Icon(Icons.attach_money),
                 prefixText: '\$ ',
               ),
-              keyboardType: const TextInputType.numberWithOptions(decimal: true),
+              keyboardType:
+                  const TextInputType.numberWithOptions(decimal: true),
               inputFormatters: [
                 FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d{0,2}')),
               ],

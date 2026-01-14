@@ -51,14 +51,16 @@ class InvoiceListPage extends ConsumerWidget {
           // Summary section
           filteredInvoices.when(
             data: (invoices) {
-              final totalAmount = invoices.fold(0.0, (sum, inv) => sum + inv.total);
+              final totalAmount =
+                  invoices.fold(0.0, (sum, inv) => sum + inv.total);
               final paidAmount = invoices
                   .where((inv) => inv.status == InvoiceStatus.paid)
                   .fold(0.0, (sum, inv) => sum + inv.total);
               final pendingAmount = totalAmount - paidAmount;
 
               return Container(
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [

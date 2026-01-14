@@ -52,9 +52,10 @@ class InvoiceListTile extends StatelessWidget {
     final dateFormat = DateFormat('MMM d, yyyy');
 
     // Check if invoice is actually overdue (status might not be updated yet)
-    final displayStatus = invoice.isOverdue && invoice.status != InvoiceStatus.paid
-        ? InvoiceStatus.overdue
-        : invoice.status;
+    final displayStatus =
+        invoice.isOverdue && invoice.status != InvoiceStatus.paid
+            ? InvoiceStatus.overdue
+            : invoice.status;
     final displayColor = _getStatusColor(context, displayStatus);
 
     return Card(
@@ -106,7 +107,8 @@ class InvoiceListTile extends StatelessWidget {
                 ),
                 const SizedBox(width: 8),
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
                   decoration: BoxDecoration(
                     color: displayColor.withValues(alpha: 0.15),
                     borderRadius: BorderRadius.circular(12),

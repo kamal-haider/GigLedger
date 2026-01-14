@@ -68,7 +68,8 @@ class FinancialSummaryCard extends StatelessWidget {
                 amount: formatter.format(summary.overdueAmount),
                 icon: Icons.warning_amber_rounded,
                 color: theme.colorScheme.error,
-                label: 'overdue invoice${summary.overdueInvoices > 1 ? 's' : ''}',
+                label:
+                    'overdue invoice${summary.overdueInvoices > 1 ? 's' : ''}',
               ),
             ],
             if (summary.pendingInvoices > 0) ...[
@@ -78,7 +79,8 @@ class FinancialSummaryCard extends StatelessWidget {
                 amount: formatter.format(summary.pendingAmount),
                 icon: Icons.schedule,
                 color: theme.colorScheme.tertiary,
-                label: 'pending invoice${summary.pendingInvoices > 1 ? 's' : ''}',
+                label:
+                    'pending invoice${summary.pendingInvoices > 1 ? 's' : ''}',
               ),
             ],
           ],

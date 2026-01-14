@@ -27,7 +27,8 @@ class DashboardRemoteDataSourceImpl implements DashboardRemoteDataSource {
   String get _userId {
     final user = _firebaseAuth.currentUser;
     if (user == null) {
-      throw const AuthException('User not authenticated', code: 'not-authenticated');
+      throw const AuthException('User not authenticated',
+          code: 'not-authenticated');
     }
     return user.uid;
   }
@@ -63,13 +64,9 @@ class DashboardRemoteDataSourceImpl implements DashboardRemoteDataSource {
             .where('paidDate', isGreaterThanOrEqualTo: startOfYearTimestamp)
             .get(),
         // Get pending invoices (sent/viewed status)
-        _invoicesCollection
-            .where('status', whereIn: ['sent', 'viewed'])
-            .get(),
+        _invoicesCollection.where('status', whereIn: ['sent', 'viewed']).get(),
         // Get overdue invoices
-        _invoicesCollection
-            .where('status', isEqualTo: 'overdue')
-            .get(),
+        _invoicesCollection.where('status', isEqualTo: 'overdue').get(),
         // Get expenses from this year
         _expensesCollection
             .where('date', isGreaterThanOrEqualTo: startOfYearTimestamp)
@@ -106,12 +103,10 @@ class DashboardRemoteDataSourceImpl implements DashboardRemoteDataSource {
         .snapshots();
 
     final pendingInvoicesStream = _invoicesCollection
-        .where('status', whereIn: ['sent', 'viewed'])
-        .snapshots();
+        .where('status', whereIn: ['sent', 'viewed']).snapshots();
 
-    final overdueInvoicesStream = _invoicesCollection
-        .where('status', isEqualTo: 'overdue')
-        .snapshots();
+    final overdueInvoicesStream =
+        _invoicesCollection.where('status', isEqualTo: 'overdue').snapshots();
 
     final expensesStream = _expensesCollection
         .where('date', isGreaterThanOrEqualTo: startOfYearTimestamp)
@@ -311,10 +306,16 @@ class DashboardRemoteDataSourceImpl implements DashboardRemoteDataSource {
 
     final timestamp = (updatedAtData as Timestamp).toDate();
     final (type, title) = switch (status) {
-      'draft' => (ActivityType.invoiceCreated, 'Invoice created for $clientName'),
+      'draft' => (
+          ActivityType.invoiceCreated,
+          'Invoice created for $clientName'
+        ),
       'sent' => (ActivityType.invoiceSent, 'Invoice sent to $clientName'),
       'paid' => (ActivityType.invoicePaid, 'Payment received from $clientName'),
-      'overdue' => (ActivityType.invoiceOverdue, 'Invoice overdue for $clientName'),
+      'overdue' => (
+          ActivityType.invoiceOverdue,
+          'Invoice overdue for $clientName'
+        ),
       _ => (ActivityType.invoiceCreated, 'Invoice updated for $clientName'),
     };
 

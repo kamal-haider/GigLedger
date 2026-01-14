@@ -7,7 +7,8 @@ import '../../domain/models/recent_activity.dart';
 import '../../domain/repositories/i_dashboard_repository.dart';
 
 /// Provider for dashboard data source
-final dashboardRemoteDataSourceProvider = Provider<DashboardRemoteDataSource>((ref) {
+final dashboardRemoteDataSourceProvider =
+    Provider<DashboardRemoteDataSource>((ref) {
   return DashboardRemoteDataSourceImpl();
 });
 
@@ -19,7 +20,8 @@ final dashboardRepositoryProvider = Provider<IDashboardRepository>((ref) {
 
 /// Stream provider for financial summary (real-time updates)
 /// Uses autoDispose to prevent wasted Firestore reads when not in use
-final financialSummaryStreamProvider = StreamProvider.autoDispose<FinancialSummary>((ref) {
+final financialSummaryStreamProvider =
+    StreamProvider.autoDispose<FinancialSummary>((ref) {
   final repository = ref.watch(dashboardRepositoryProvider);
   return repository.watchFinancialSummary();
 });
@@ -31,7 +33,8 @@ final financialSummaryProvider = FutureProvider<FinancialSummary>((ref) {
 });
 
 /// Stream provider for recent activity (real-time updates)
-final recentActivityStreamProvider = StreamProvider.autoDispose<List<RecentActivity>>((ref) {
+final recentActivityStreamProvider =
+    StreamProvider.autoDispose<List<RecentActivity>>((ref) {
   final repository = ref.watch(dashboardRepositoryProvider);
   return repository.watchRecentActivity(limit: 10);
 });

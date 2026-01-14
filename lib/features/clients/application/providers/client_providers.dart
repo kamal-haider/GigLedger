@@ -56,9 +56,11 @@ final filteredClientsProvider = Provider<AsyncValue<List<Client>>>((ref) {
 
   return clientsAsync.whenData((clients) {
     if (query.isEmpty) return clients;
-    return clients.where((client) =>
-        client.name.toLowerCase().contains(query) ||
-        client.email.toLowerCase().contains(query)).toList();
+    return clients
+        .where((client) =>
+            client.name.toLowerCase().contains(query) ||
+            client.email.toLowerCase().contains(query))
+        .toList();
   });
 });
 

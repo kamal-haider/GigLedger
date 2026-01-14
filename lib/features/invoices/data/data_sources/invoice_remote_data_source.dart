@@ -17,7 +17,8 @@ abstract class InvoiceRemoteDataSource {
   Future<InvoiceDTO> create(InvoiceDTO invoice);
   Future<InvoiceDTO> update(InvoiceDTO invoice);
   Future<void> delete(String id);
-  Future<InvoiceDTO> updateStatus(String id, String status, {DateTime? paidDate});
+  Future<InvoiceDTO> updateStatus(String id, String status,
+      {DateTime? paidDate});
   Future<String> getNextInvoiceNumber();
   Future<int> getCount();
   Future<int> getMonthlyCount();
@@ -37,7 +38,8 @@ class InvoiceRemoteDataSourceImpl implements InvoiceRemoteDataSource {
   String get _userId {
     final user = _firebaseAuth.currentUser;
     if (user == null) {
-      throw const AuthException('User not authenticated', code: 'not-authenticated');
+      throw const AuthException('User not authenticated',
+          code: 'not-authenticated');
     }
     return user.uid;
   }
@@ -55,7 +57,8 @@ class InvoiceRemoteDataSourceImpl implements InvoiceRemoteDataSource {
           .map((doc) => InvoiceDTO.fromJson(doc.data(), doc.id))
           .toList();
     } catch (e) {
-      throw ServerException('Failed to get invoices: $e', code: 'firestore-read-error');
+      throw ServerException('Failed to get invoices: $e',
+          code: 'firestore-read-error');
     }
   }
 
@@ -70,7 +73,8 @@ class InvoiceRemoteDataSourceImpl implements InvoiceRemoteDataSource {
           .map((doc) => InvoiceDTO.fromJson(doc.data(), doc.id))
           .toList();
     } catch (e) {
-      throw ServerException('Failed to get invoices: $e', code: 'firestore-read-error');
+      throw ServerException('Failed to get invoices: $e',
+          code: 'firestore-read-error');
     }
   }
 
@@ -85,7 +89,8 @@ class InvoiceRemoteDataSourceImpl implements InvoiceRemoteDataSource {
           .map((doc) => InvoiceDTO.fromJson(doc.data(), doc.id))
           .toList();
     } catch (e) {
-      throw ServerException('Failed to get invoices: $e', code: 'firestore-read-error');
+      throw ServerException('Failed to get invoices: $e',
+          code: 'firestore-read-error');
     }
   }
 
@@ -96,7 +101,8 @@ class InvoiceRemoteDataSourceImpl implements InvoiceRemoteDataSource {
       if (!doc.exists || doc.data() == null) return null;
       return InvoiceDTO.fromJson(doc.data()!, doc.id);
     } catch (e) {
-      throw ServerException('Failed to get invoice: $e', code: 'firestore-read-error');
+      throw ServerException('Failed to get invoice: $e',
+          code: 'firestore-read-error');
     }
   }
 
@@ -142,7 +148,8 @@ class InvoiceRemoteDataSourceImpl implements InvoiceRemoteDataSource {
       final doc = await docRef.get();
       return InvoiceDTO.fromJson(doc.data()!, doc.id);
     } catch (e) {
-      throw ServerException('Failed to create invoice: $e', code: 'firestore-write-error');
+      throw ServerException('Failed to create invoice: $e',
+          code: 'firestore-write-error');
     }
   }
 
@@ -165,7 +172,8 @@ class InvoiceRemoteDataSourceImpl implements InvoiceRemoteDataSource {
       return InvoiceDTO.fromJson(doc.data()!, doc.id);
     } catch (e) {
       if (e is AuthException) rethrow;
-      throw ServerException('Failed to update invoice: $e', code: 'firestore-write-error');
+      throw ServerException('Failed to update invoice: $e',
+          code: 'firestore-write-error');
     }
   }
 
@@ -174,12 +182,14 @@ class InvoiceRemoteDataSourceImpl implements InvoiceRemoteDataSource {
     try {
       await _invoicesCollection.doc(id).delete();
     } catch (e) {
-      throw ServerException('Failed to delete invoice: $e', code: 'firestore-write-error');
+      throw ServerException('Failed to delete invoice: $e',
+          code: 'firestore-write-error');
     }
   }
 
   @override
-  Future<InvoiceDTO> updateStatus(String id, String status, {DateTime? paidDate}) async {
+  Future<InvoiceDTO> updateStatus(String id, String status,
+      {DateTime? paidDate}) async {
     try {
       final updates = <String, dynamic>{
         'status': status,
@@ -193,7 +203,8 @@ class InvoiceRemoteDataSourceImpl implements InvoiceRemoteDataSource {
       final doc = await _invoicesCollection.doc(id).get();
       return InvoiceDTO.fromJson(doc.data()!, doc.id);
     } catch (e) {
-      throw ServerException('Failed to update invoice status: $e', code: 'firestore-write-error');
+      throw ServerException('Failed to update invoice status: $e',
+          code: 'firestore-write-error');
     }
   }
 
@@ -219,7 +230,8 @@ class InvoiceRemoteDataSourceImpl implements InvoiceRemoteDataSource {
       final nextNumber = (int.tryParse(numberPart) ?? 0) + 1;
       return 'INV-${nextNumber.toString().padLeft(4, '0')}';
     } catch (e) {
-      throw ServerException('Failed to get next invoice number: $e', code: 'firestore-read-error');
+      throw ServerException('Failed to get next invoice number: $e',
+          code: 'firestore-read-error');
     }
   }
 
@@ -229,7 +241,8 @@ class InvoiceRemoteDataSourceImpl implements InvoiceRemoteDataSource {
       final snapshot = await _invoicesCollection.count().get();
       return snapshot.count ?? 0;
     } catch (e) {
-      throw ServerException('Failed to get invoice count: $e', code: 'firestore-read-error');
+      throw ServerException('Failed to get invoice count: $e',
+          code: 'firestore-read-error');
     }
   }
 
@@ -241,13 +254,16 @@ class InvoiceRemoteDataSourceImpl implements InvoiceRemoteDataSource {
       final endOfMonth = DateTime(now.year, now.month + 1, 0, 23, 59, 59);
 
       final snapshot = await _invoicesCollection
-          .where('createdAt', isGreaterThanOrEqualTo: Timestamp.fromDate(startOfMonth))
-          .where('createdAt', isLessThanOrEqualTo: Timestamp.fromDate(endOfMonth))
+          .where('createdAt',
+              isGreaterThanOrEqualTo: Timestamp.fromDate(startOfMonth))
+          .where('createdAt',
+              isLessThanOrEqualTo: Timestamp.fromDate(endOfMonth))
           .count()
           .get();
       return snapshot.count ?? 0;
     } catch (e) {
-      throw ServerException('Failed to get monthly invoice count: $e', code: 'firestore-read-error');
+      throw ServerException('Failed to get monthly invoice count: $e',
+          code: 'firestore-read-error');
     }
   }
 
@@ -256,14 +272,16 @@ class InvoiceRemoteDataSourceImpl implements InvoiceRemoteDataSource {
     try {
       final now = Timestamp.now();
       final snapshot = await _invoicesCollection
-          .where('status', whereIn: [InvoiceStatus.sent.name, InvoiceStatus.viewed.name])
+          .where('status',
+              whereIn: [InvoiceStatus.sent.name, InvoiceStatus.viewed.name])
           .where('dueDate', isLessThan: now)
           .get();
       return snapshot.docs
           .map((doc) => InvoiceDTO.fromJson(doc.data(), doc.id))
           .toList();
     } catch (e) {
-      throw ServerException('Failed to get overdue invoices: $e', code: 'firestore-read-error');
+      throw ServerException('Failed to get overdue invoices: $e',
+          code: 'firestore-read-error');
     }
   }
 }

@@ -51,7 +51,8 @@ class ReceiptUploadState {
       isUploading: isUploading ?? this.isUploading,
       uploadProgress: uploadProgress ?? this.uploadProgress,
       errorMessage: clearError ? null : (errorMessage ?? this.errorMessage),
-      localImagePath: clearLocalImage ? null : (localImagePath ?? this.localImagePath),
+      localImagePath:
+          clearLocalImage ? null : (localImagePath ?? this.localImagePath),
       uploadedUrl: clearUploadedUrl ? null : (uploadedUrl ?? this.uploadedUrl),
     );
   }
@@ -186,7 +187,8 @@ class ReceiptUploadNotifier extends StateNotifier<ReceiptUploadState> {
       // Simulate progress updates (actual progress would come from Firebase)
       state = state.copyWith(uploadProgress: 0.3);
 
-      final url = await _repository.uploadReceipt(expenseId, state.localImagePath!);
+      final url =
+          await _repository.uploadReceipt(expenseId, state.localImagePath!);
 
       state = state.copyWith(uploadProgress: 1.0);
 
@@ -249,7 +251,8 @@ class ReceiptUploadNotifier extends StateNotifier<ReceiptUploadState> {
 /// Provider for receipt upload operations
 /// Using family to scope by expense ID for proper isolation
 final receiptUploadProvider = StateNotifierProvider.autoDispose
-    .family<ReceiptUploadNotifier, ReceiptUploadState, String?>((ref, expenseId) {
+    .family<ReceiptUploadNotifier, ReceiptUploadState, String?>(
+        (ref, expenseId) {
   final repository = ref.watch(expenseRepositoryProvider);
   return ReceiptUploadNotifier(repository);
 });

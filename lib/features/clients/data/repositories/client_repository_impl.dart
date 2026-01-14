@@ -37,8 +37,9 @@ class ClientRepositoryImpl implements IClientRepository {
 
   @override
   Stream<List<Client>> watchAll() {
-    return _dataSource.watchAll().map(
-        (dtos) => dtos.map((dto) => dto.toDomain()).toList());
+    return _dataSource
+        .watchAll()
+        .map((dtos) => dtos.map((dto) => dto.toDomain()).toList());
   }
 
   @override
@@ -95,7 +96,8 @@ class ClientRepositoryImpl implements IClientRepository {
   }
 
   @override
-  Future<void> updateTotals(String clientId, {double? billed, double? paid}) async {
+  Future<void> updateTotals(String clientId,
+      {double? billed, double? paid}) async {
     try {
       await _dataSource.updateTotals(clientId, billed: billed, paid: paid);
     } on AuthException catch (e) {

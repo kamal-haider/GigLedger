@@ -62,8 +62,18 @@ class SeedData {
       'clientName': 'Acme Corporation',
       'clientEmail': 'billing@acme.com',
       'lineItems': [
-        {'description': 'Web Development', 'quantity': 40, 'rate': 150.0, 'amount': 6000.0},
-        {'description': 'UI/UX Design', 'quantity': 20, 'rate': 125.0, 'amount': 2500.0},
+        {
+          'description': 'Web Development',
+          'quantity': 40,
+          'rate': 150.0,
+          'amount': 6000.0
+        },
+        {
+          'description': 'UI/UX Design',
+          'quantity': 20,
+          'rate': 125.0,
+          'amount': 2500.0
+        },
       ],
       'subtotal': 8500.0,
       'taxRate': 0.0,
@@ -86,7 +96,12 @@ class SeedData {
       'clientName': 'TechStart Inc',
       'clientEmail': 'accounts@techstart.io',
       'lineItems': [
-        {'description': 'Monthly Retainer - January', 'quantity': 1, 'rate': 5000.0, 'amount': 5000.0},
+        {
+          'description': 'Monthly Retainer - January',
+          'quantity': 1,
+          'rate': 5000.0,
+          'amount': 5000.0
+        },
       ],
       'subtotal': 5000.0,
       'taxRate': 0.0,
@@ -109,8 +124,18 @@ class SeedData {
       'clientName': 'Creative Agency LLC',
       'clientEmail': 'hello@creativeagency.co',
       'lineItems': [
-        {'description': 'Brand Identity Design', 'quantity': 1, 'rate': 3500.0, 'amount': 3500.0},
-        {'description': 'Logo Variations', 'quantity': 5, 'rate': 200.0, 'amount': 1000.0},
+        {
+          'description': 'Brand Identity Design',
+          'quantity': 1,
+          'rate': 3500.0,
+          'amount': 3500.0
+        },
+        {
+          'description': 'Logo Variations',
+          'quantity': 5,
+          'rate': 200.0,
+          'amount': 1000.0
+        },
       ],
       'subtotal': 4500.0,
       'taxRate': 8.25,
@@ -133,7 +158,12 @@ class SeedData {
       'clientName': 'Acme Corporation',
       'clientEmail': 'billing@acme.com',
       'lineItems': [
-        {'description': 'API Integration', 'quantity': 15, 'rate': 175.0, 'amount': 2625.0},
+        {
+          'description': 'API Integration',
+          'quantity': 15,
+          'rate': 175.0,
+          'amount': 2625.0
+        },
       ],
       'subtotal': 2625.0,
       'taxRate': 0.0,

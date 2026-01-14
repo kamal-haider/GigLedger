@@ -52,7 +52,8 @@ class ExpenseListPage extends ConsumerWidget {
             data: (expenses) {
               final total = expenses.fold(0.0, (sum, e) => sum + e.amount);
               return Container(
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [

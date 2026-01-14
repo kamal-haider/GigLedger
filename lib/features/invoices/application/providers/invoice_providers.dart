@@ -7,7 +7,8 @@ import '../../domain/models/invoice.dart';
 import '../../domain/repositories/i_invoice_repository.dart';
 
 /// Provider for invoice data source
-final invoiceRemoteDataSourceProvider = Provider<InvoiceRemoteDataSource>((ref) {
+final invoiceRemoteDataSourceProvider =
+    Provider<InvoiceRemoteDataSource>((ref) {
   return InvoiceRemoteDataSourceImpl();
 });
 
@@ -31,19 +32,22 @@ final invoiceByIdProvider = FutureProvider.family<Invoice?, String>((ref, id) {
 });
 
 /// Stream provider for watching a single invoice
-final invoiceStreamProvider = StreamProvider.family<Invoice?, String>((ref, id) {
+final invoiceStreamProvider =
+    StreamProvider.family<Invoice?, String>((ref, id) {
   final repository = ref.watch(invoiceRepositoryProvider);
   return repository.watch(id);
 });
 
 /// Selected status filter for invoice list
-final invoiceStatusFilterProvider = StateProvider<InvoiceStatus?>((ref) => null);
+final invoiceStatusFilterProvider =
+    StateProvider<InvoiceStatus?>((ref) => null);
 
 /// Date range filter for invoices
 final invoiceDateRangeProvider = StateProvider<DateTimeRange?>((ref) => null);
 
 /// Helper to normalize DateTime to start of day for inclusive date comparisons
-DateTime _startOfDay(DateTime date) => DateTime(date.year, date.month, date.day);
+DateTime _startOfDay(DateTime date) =>
+    DateTime(date.year, date.month, date.day);
 
 /// Helper to normalize DateTime to end of day for inclusive date comparisons
 DateTime _endOfDay(DateTime date) =>
@@ -76,7 +80,8 @@ final filteredInvoicesProvider = Provider<AsyncValue<List<Invoice>>>((ref) {
 });
 
 /// Provider for overdue invoices
-final overdueInvoicesProvider = FutureProvider.autoDispose<List<Invoice>>((ref) {
+final overdueInvoicesProvider =
+    FutureProvider.autoDispose<List<Invoice>>((ref) {
   final repository = ref.watch(invoiceRepositoryProvider);
   return repository.getOverdue();
 });
