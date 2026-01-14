@@ -38,11 +38,22 @@ class IncomeExpenseReportPage extends ConsumerWidget {
               ref.read(incomeExpenseReportProvider.notifier).setPreset(preset);
             },
             onCustomDateRange: () async {
+              final now = DateTime.now();
+              // Clamp initial range to valid bounds
+              final clampedStart = reportState.dateRange.start.isAfter(now)
+                  ? now
+                  : reportState.dateRange.start;
+              final clampedEnd = reportState.dateRange.end.isAfter(now)
+                  ? now
+                  : reportState.dateRange.end;
               final picked = await showDateRangePicker(
                 context: context,
                 firstDate: DateTime(2020),
-                lastDate: DateTime.now(),
-                initialDateRange: reportState.dateRange,
+                lastDate: now,
+                initialDateRange: DateTimeRange(
+                  start: clampedStart,
+                  end: clampedEnd,
+                ),
               );
               if (picked != null) {
                 ref
@@ -166,10 +177,8 @@ class _ReportContent extends StatelessWidget {
         _SummaryCards(report: report, currencyFormat: currencyFormat),
         const SizedBox(height: 24),
         // Chart
-        if (report.monthlyData.length > 1) ...[
-          _ChartSection(report: report, currencyFormat: currencyFormat),
-          const SizedBox(height: 24),
-        ],
+        _ChartSection(report: report, currencyFormat: currencyFormat),
+        const SizedBox(height: 24),
         // Monthly breakdown
         _MonthlyBreakdown(report: report, currencyFormat: currencyFormat),
       ],
