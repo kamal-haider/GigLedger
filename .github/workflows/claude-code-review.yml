@@ -23,6 +23,9 @@ jobs:
       issues: read
       id-token: write
 
+    # Timeout after 10 minutes to prevent hanging reviews from blocking PRs
+    timeout-minutes: 10
+
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
