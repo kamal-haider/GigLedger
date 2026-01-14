@@ -29,6 +29,15 @@ jobs:
         with:
           fetch-depth: 1
 
+      - name: Delete previous Claude reviews
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          # Get all comments on the PR and delete ones from claude-code-action bot
+          gh api repos/${{ github.repository }}/issues/${{ github.event.pull_request.number }}/comments \
+            --jq '.[] | select(.user.login == "github-actions[bot]" and (.body | contains("## PR #"))) | .id' \
+            | xargs -I {} gh api repos/${{ github.repository }}/issues/comments/{} -X DELETE || true
+
       - name: Run Claude Code Review
         id: claude-review
         uses: anthropics/claude-code-action@v1
