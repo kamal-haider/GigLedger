@@ -14,6 +14,7 @@ import '../features/expenses/presentation/pages/expense_list_page.dart';
 import '../features/invoices/presentation/pages/invoice_detail_page.dart';
 import '../features/invoices/presentation/pages/invoice_form_page.dart';
 import '../features/invoices/presentation/pages/invoice_list_page.dart';
+import '../features/reports/presentation/pages/income_expense_report_page.dart';
 import '../features/settings/presentation/pages/business_profile_page.dart';
 import 'main_scaffold.dart';
 
@@ -194,11 +195,7 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: '/reports',
         name: 'reports',
-        builder: (context, state) => const PlaceholderScreen(
-          title: 'Reports',
-          message:
-              'Income vs expense charts, top clients, and category breakdown coming soon',
-        ),
+        builder: (context, state) => const IncomeExpenseReportPage(),
       ),
 
       // Root redirect
