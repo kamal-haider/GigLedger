@@ -11,6 +11,7 @@ import '../features/clients/presentation/pages/client_list_page.dart';
 import '../features/dashboard/presentation/pages/dashboard_page.dart';
 import '../features/expenses/presentation/pages/expense_form_page.dart';
 import '../features/expenses/presentation/pages/expense_list_page.dart';
+import '../features/invoices/presentation/pages/invoice_form_page.dart';
 import '../features/invoices/presentation/pages/invoice_list_page.dart';
 import '../features/settings/presentation/pages/business_profile_page.dart';
 import 'main_scaffold.dart';
@@ -88,20 +89,14 @@ final routerProvider = Provider<GoRouter>((ref) {
                   GoRoute(
                     path: 'new',
                     name: 'new-invoice',
-                    builder: (context, state) => const PlaceholderScreen(
-                      title: 'New Invoice',
-                      message: 'Create invoice screen coming soon',
-                    ),
+                    builder: (context, state) => const InvoiceFormPage(),
                   ),
                   GoRoute(
                     path: ':id',
                     name: 'invoice-detail',
                     builder: (context, state) {
                       final id = state.pathParameters['id']!;
-                      return PlaceholderScreen(
-                        title: 'Invoice',
-                        message: 'Invoice details for $id coming soon',
-                      );
+                      return InvoiceFormPage(invoiceId: id);
                     },
                   ),
                 ],
