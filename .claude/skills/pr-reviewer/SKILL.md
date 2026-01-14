@@ -287,6 +287,27 @@ gh pr comment <number> --body "Review comment"
 8. **Acknowledge Updates**: When context is added, confirm what's resolved vs still unclear
 9. **Actionable Output**: Every piece of feedback should have a clear action
 
+## Special Review Cases
+
+### Dependency Changes (pubspec.yaml)
+
+When a PR adds or modifies dependencies, **search the ENTIRE codebase** before flagging issues:
+
+```bash
+# Check if a dependency is used ANYWHERE in the codebase (not just PR files)
+grep -r "import.*package_name" lib/
+
+# Example: Before saying "rxdart is unused"
+grep -r "import.*rxdart" lib/
+```
+
+**CRITICAL RULE:** A dependency added in a PR may already be used elsewhere in the codebase. Only flag a dependency as unused if `grep` confirms zero imports across ALL of `lib/`.
+
+**Common false positives to avoid:**
+- Dependency added to pubspec.yaml but used in files NOT changed by this PR
+- Transitive dependencies being made explicit (already used indirectly)
+- Dependencies used by code generation (build_runner, riverpod_generator)
+
 ## Anti-Patterns to Avoid
 
 - **Reviewing without context**: Never review code without understanding the goal first
@@ -299,6 +320,7 @@ gh pr comment <number> --body "Review comment"
 - Suggesting scope expansion ("while you're here, also do X")
 - Creating duplicate issues for existing concerns
 - **Ignoring follow-up context**: When someone answers your questions, acknowledge it
+- **Flagging dependencies as unused without searching the full codebase** - Always grep before claiming a package is unused
 
 ## References
 

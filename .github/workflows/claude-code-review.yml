@@ -35,21 +35,18 @@ jobs:
         with:
           anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
           prompt: |
-            REPO: ${{ github.repository }}
-            PR NUMBER: ${{ github.event.pull_request.number }}
+            Use the /pr-reviewer skill to review PR #${{ github.event.pull_request.number }}.
 
-            Please review this pull request and provide feedback on:
-            - Code quality and best practices
-            - Potential bugs or issues
-            - Performance considerations
-            - Security concerns
-            - Test coverage
+            The skill is defined in .claude/skills/pr-reviewer/SKILL.md - follow its instructions exactly.
 
-            Use the repository's CLAUDE.md for guidance on style and conventions. Be constructive and helpful in your feedback.
-
-            Use `gh pr comment` with your Bash tool to leave your review as a comment on the PR.
+            Key requirements:
+            1. First gather full context: ticket goals, acceptance criteria, app north star
+            2. Only flag issues within the PR's intended scope
+            3. Categorize by severity: CRITICAL/HIGH block merge, MEDIUM/LOW create issues
+            4. Use the exact output format from the skill
+            5. Post your review as a comment using `gh pr comment`
 
           # See https://github.com/anthropics/claude-code-action/blob/main/docs/usage.md
           # or https://code.claude.com/docs/en/cli-reference for available options
-          # Include Read, Glob, Grep for code review + gh commands for PR interaction
-          claude_args: '--allowed-tools "Read,Glob,Grep,Bash(gh issue view:*),Bash(gh search:*),Bash(gh issue list:*),Bash(gh pr comment:*),Bash(gh pr diff:*),Bash(gh pr view:*),Bash(gh pr list:*)"'
+          # Include Read, Glob, Grep for code review + gh commands for PR/issue interaction
+          claude_args: '--allowed-tools "Read,Glob,Grep,Bash(gh issue view:*),Bash(gh search:*),Bash(gh issue list:*),Bash(gh issue create:*),Bash(gh issue edit:*),Bash(gh pr comment:*),Bash(gh pr diff:*),Bash(gh pr view:*),Bash(gh pr list:*)"'

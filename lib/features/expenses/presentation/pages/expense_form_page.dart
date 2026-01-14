@@ -6,7 +6,9 @@ import 'package:intl/intl.dart';
 
 import '../../application/providers/expense_form_provider.dart';
 import '../../application/providers/expense_providers.dart';
+import '../../application/providers/receipt_upload_provider.dart';
 import '../../domain/models/expense.dart';
+import '../widgets/receipt_picker.dart';
 
 /// Expense add/edit form page
 class ExpenseFormPage extends ConsumerStatefulWidget {
@@ -113,6 +115,7 @@ class _ExpenseFormPageState extends ConsumerState<ExpenseFormPage> {
     if (!_formKey.currentState!.validate()) return;
 
     final formNotifier = ref.read(expenseFormProvider.notifier);
+    final formState = ref.read(expenseFormProvider);
 
     // Update form state from controllers
     final amount = double.tryParse(_amountController.text.replaceAll(',', ''));
@@ -123,13 +126,44 @@ class _ExpenseFormPageState extends ConsumerState<ExpenseFormPage> {
     final savedExpense = await formNotifier.saveExpense();
 
     if (savedExpense != null && mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(isEditMode ? 'Expense updated' : 'Expense added'),
-          behavior: SnackBarBehavior.floating,
-        ),
-      );
-      context.pop();
+      // Check if there's a local image pending upload
+      final receiptState = ref.read(receiptUploadProvider(widget.expenseId));
+      if (receiptState.localImagePath != null) {
+        final receiptNotifier = ref.read(receiptUploadProvider(widget.expenseId).notifier);
+
+        // Delete old receipt if replacing (edit mode with existing receipt)
+        if (formState.existingReceiptUrl != null) {
+          await receiptNotifier.deleteReceipt(savedExpense.id);
+        }
+
+        // Upload the new receipt image
+        final receiptUrl = await receiptNotifier.uploadReceipt(savedExpense.id);
+
+        if (receiptUrl != null && mounted) {
+          // Update the expense with the receipt URL
+          final expenseNotifier = ref.read(expenseNotifierProvider.notifier);
+          await expenseNotifier.updateExpense(savedExpense.copyWith(receiptUrl: receiptUrl));
+        } else if (mounted) {
+          // Upload failed - notify user but expense was saved
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: const Text('Expense saved but receipt upload failed. You can add it later.'),
+              behavior: SnackBarBehavior.floating,
+              backgroundColor: Theme.of(context).colorScheme.error,
+            ),
+          );
+        }
+      }
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(isEditMode ? 'Expense updated' : 'Expense added'),
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
+        context.pop();
+      }
     }
   }
 
@@ -336,49 +370,13 @@ class _ExpenseFormPageState extends ConsumerState<ExpenseFormPage> {
             ),
             const SizedBox(height: 24),
 
-            // Receipt placeholder (coming soon)
-            Container(
-              padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                color: theme.colorScheme.surfaceContainerHighest.withValues(alpha: 0.3),
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(
-                  color: theme.colorScheme.outlineVariant,
-                  style: BorderStyle.solid,
-                ),
-              ),
-              child: Row(
-                children: [
-                  Icon(
-                    Icons.receipt_long,
-                    color: theme.colorScheme.onSurfaceVariant,
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          'Receipt Photo',
-                          style: theme.textTheme.titleSmall?.copyWith(
-                            color: theme.colorScheme.onSurfaceVariant,
-                          ),
-                        ),
-                        Text(
-                          'Coming soon',
-                          style: theme.textTheme.bodySmall?.copyWith(
-                            color: theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.7),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  Icon(
-                    Icons.add_photo_alternate_outlined,
-                    color: theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.5),
-                  ),
-                ],
-              ),
+            // Receipt photo picker
+            ReceiptPicker(
+              expenseId: widget.expenseId,
+              initialReceiptUrl: formState.existingReceiptUrl,
+              onReceiptChanged: (url) {
+                ref.read(expenseFormProvider.notifier).setReceiptUrl(url);
+              },
             ),
             const SizedBox(height: 32),
 

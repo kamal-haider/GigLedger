@@ -258,6 +258,28 @@ This is the **scope authority**.
 
 ---
 
+## 13. Development Workflow
+**File:** `13_development_workflow.md`
+
+### When to Check This
+- When starting a new development session
+- When onboarding new developers or Claude agents
+- When reviewing PRs
+- When managing issues and branches
+
+### What It Governs
+- Git workflow and branch strategy
+- PR creation and review process
+- Claude skill usage (pr-reviewer, feature-implementer, etc.)
+- Agent best practices and session continuity
+
+### Key Question It Answers
+> "How do I work on this codebase with Claude agents?"
+
+This document is essential for maintaining consistency across development sessions and ensuring Claude agents follow the same patterns.
+
+---
+
 ## How These Docs Work Together
 
 - **Vision → PRD → Architecture → Execution**

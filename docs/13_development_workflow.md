@@ -254,6 +254,125 @@ Closes #1
 Co-Authored-By: Claude Opus 4.5 <noreply@anthropic.com>
 ```
 
+## Working with Claude Agents
+
+GigLedger development is designed to work seamlessly with Claude Code agents. The project includes specialized skills that help maintain consistency across sessions.
+
+### Available Claude Skills
+
+Located in `.claude/skills/`, these skills are automatically available:
+
+| Skill | Invoke With | Purpose |
+|-------|-------------|---------|
+| `main-orchestrator` | `/main-orchestrator` | Coordinates all development with docs as source of truth |
+| `feature-implementer` | `/feature-implementer` | Implements features following Clean Architecture |
+| `pr-reviewer` | `/pr-reviewer <number>` | Reviews PRs with ticket context and severity-based feedback |
+| `architecture-expert` | `/architecture-expert` | Deep expertise on app structure and patterns |
+| `schema-expert` | `/schema-expert` | Database design, DTOs, and data models |
+| `integration-expert` | `/integration-expert` | External API integration and Cloud Functions |
+| `mvp-validator` | `/mvp-validator` | Validates features against MVP scope |
+
+### Typical Agent Development Session
+
+```
+┌─────────────────────────────────────────────────────────────────┐
+│              AGENT-ASSISTED DEVELOPMENT SESSION                  │
+├─────────────────────────────────────────────────────────────────┤
+│                                                                  │
+│  1. Agent picks ticket from backlog                             │
+│         │                                                        │
+│         ▼                                                        │
+│  2. Agent reads ticket + linked docs for full context           │
+│         │                                                        │
+│         ▼                                                        │
+│  3. Agent creates todo list tracking implementation steps       │
+│         │                                                        │
+│         ▼                                                        │
+│  4. Agent implements feature (updates todos as it goes)         │
+│         │                                                        │
+│         ▼                                                        │
+│  5. Agent runs flutter analyze + tests                          │
+│         │                                                        │
+│         ▼                                                        │
+│  6. Agent starts app for manual testing                         │
+│         │                                                        │
+│         ▼                                                        │
+│  7. User tests and confirms "works"                             │
+│         │                                                        │
+│         ▼                                                        │
+│  8. Agent creates PR with summary + test plan                   │
+│         │                                                        │
+│         ▼                                                        │
+│  9. PR Review (automated or via /pr-reviewer)                   │
+│         │                                                        │
+│         ▼                                                        │
+│  10. Agent addresses feedback, merges, unblocks dependents      │
+│                                                                  │
+└─────────────────────────────────────────────────────────────────┘
+```
+
+### PR Review Workflow
+
+The `/pr-reviewer` skill provides context-aware code reviews:
+
+```bash
+# Review a specific PR
+/pr-reviewer 61
+
+# The reviewer will:
+# 1. Read the linked ticket for acceptance criteria
+# 2. Understand the feature's purpose in the app
+# 3. Check changes against intended scope
+# 4. Categorize issues by severity (CRITICAL/HIGH/MEDIUM/LOW)
+# 5. Only block for app-breaking issues
+# 6. Create GitHub issues for non-critical concerns
+```
+
+**Severity Definitions:**
+
+| Severity | Blocks Merge? | Examples |
+|----------|---------------|----------|
+| CRITICAL | Yes | Crashes, data loss, security vulnerabilities |
+| HIGH | Yes | Feature doesn't work as specified |
+| MEDIUM | No (create issue) | Code quality within PR scope |
+| LOW | No (optional) | Style preferences, minor suggestions |
+
+### Continuing Development Across Sessions
+
+When starting a new session:
+
+1. **Check git status** - See what branch you're on and uncommitted changes
+2. **Read CLAUDE.md** - Contains project context and conventions
+3. **Check GitHub issues** - `gh issue list --label "in-progress"` for ongoing work
+4. **Review recent PRs** - `gh pr list` to see pending reviews
+5. **Use skills** - Invoke relevant skills for context
+
+```bash
+# Common session start commands
+git status
+gh issue list --label "in-progress"
+gh pr list --state open
+```
+
+### Agent Best Practices
+
+1. **Always use TodoWrite** - Track progress visibly for the user
+2. **Test before PR** - Run `flutter analyze` and test on device
+3. **Read before writing** - Understand existing code before modifying
+4. **Stay in scope** - Don't add features beyond ticket requirements
+5. **Document decisions** - Add comments explaining non-obvious choices
+6. **Create issues for deferrals** - Non-critical improvements become tracked issues
+
+### Handling Context Limits
+
+When a session runs out of context:
+
+1. The session summary captures key decisions and file changes
+2. New session can pick up from the summary
+3. CLAUDE.md provides project-level context
+4. Git history shows what was changed
+5. GitHub issues/PRs track the work
+
 ## GitHub Actions (CI)
 
 ### Claude Code Review
