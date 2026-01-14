@@ -94,6 +94,23 @@ class ReportsRepositoryImpl implements IReportsRepository {
   }
 
   @override
+  Future<List<ClientRevenue>> getTopClientsByDateRange(
+    DateTime start,
+    DateTime end, {
+    int limit = 10,
+  }) async {
+    final invoices = await _invoiceRepository.getAll();
+    final paidInvoices = invoices
+        .where((inv) =>
+            inv.status == InvoiceStatus.paid &&
+            inv.paidDate != null &&
+            !inv.paidDate!.isBefore(start) &&
+            !inv.paidDate!.isAfter(end))
+        .toList();
+    return _getTopClients(paidInvoices, limit: limit);
+  }
+
+  @override
   Future<List<CategoryExpense>> getExpensesByCategory(
     DateTime start,
     DateTime end,

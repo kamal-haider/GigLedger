@@ -15,6 +15,7 @@ import '../features/invoices/presentation/pages/invoice_detail_page.dart';
 import '../features/invoices/presentation/pages/invoice_form_page.dart';
 import '../features/invoices/presentation/pages/invoice_list_page.dart';
 import '../features/reports/presentation/pages/income_expense_report_page.dart';
+import '../features/reports/presentation/pages/top_clients_report_page.dart';
 import '../features/settings/presentation/pages/business_profile_page.dart';
 import 'main_scaffold.dart';
 
@@ -191,11 +192,16 @@ final routerProvider = Provider<GoRouter>((ref) {
         ],
       ),
 
-      // Reports (standalone page, not in shell)
+      // Reports (standalone pages, not in shell)
       GoRoute(
         path: '/reports',
         name: 'reports',
         builder: (context, state) => const IncomeExpenseReportPage(),
+      ),
+      GoRoute(
+        path: '/reports/top-clients',
+        name: 'top-clients-report',
+        builder: (context, state) => const TopClientsReportPage(),
       ),
 
       // Root redirect

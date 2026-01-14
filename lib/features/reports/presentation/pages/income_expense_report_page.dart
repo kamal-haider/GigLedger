@@ -1,6 +1,7 @@
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 
 import '../../application/providers/reports_providers.dart';
@@ -25,6 +26,25 @@ class IncomeExpenseReportPage extends ConsumerWidget {
               ref.read(incomeExpenseReportProvider.notifier).refresh();
             },
             tooltip: 'Refresh',
+          ),
+          PopupMenuButton<String>(
+            icon: const Icon(Icons.more_vert),
+            tooltip: 'More reports',
+            onSelected: (value) {
+              if (value == 'top-clients') {
+                context.push('/reports/top-clients');
+              }
+            },
+            itemBuilder: (context) => [
+              const PopupMenuItem(
+                value: 'top-clients',
+                child: ListTile(
+                  leading: Icon(Icons.people),
+                  title: Text('Top Clients'),
+                  contentPadding: EdgeInsets.zero,
+                ),
+              ),
+            ],
           ),
         ],
       ),

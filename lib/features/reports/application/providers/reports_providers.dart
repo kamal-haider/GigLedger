@@ -174,3 +174,93 @@ final topClientsProvider =
   final repository = ref.watch(reportsRepositoryProvider);
   return repository.getTopClients(limit: 5);
 });
+
+/// State for top clients report
+class TopClientsReportState {
+  final DateRangePreset preset;
+  final DateTimeRange dateRange;
+  final AsyncValue<List<ClientRevenue>> clients;
+
+  const TopClientsReportState({
+    required this.preset,
+    required this.dateRange,
+    required this.clients,
+  });
+
+  TopClientsReportState copyWith({
+    DateRangePreset? preset,
+    DateTimeRange? dateRange,
+    AsyncValue<List<ClientRevenue>>? clients,
+  }) {
+    return TopClientsReportState(
+      preset: preset ?? this.preset,
+      dateRange: dateRange ?? this.dateRange,
+      clients: clients ?? this.clients,
+    );
+  }
+
+  /// Calculate total revenue from all clients
+  double get totalRevenue {
+    return clients.valueOrNull
+            ?.fold<double>(0, (sum, c) => sum + c.totalRevenue) ??
+        0;
+  }
+}
+
+/// Notifier for top clients report
+class TopClientsReportNotifier extends StateNotifier<TopClientsReportState> {
+  final IReportsRepository _repository;
+
+  TopClientsReportNotifier(this._repository)
+      : super(TopClientsReportState(
+          preset: DateRangePreset.yearToDate,
+          dateRange: DateRangePreset.yearToDate.getDateRange(),
+          clients: const AsyncValue.loading(),
+        )) {
+    _loadReport();
+  }
+
+  Future<void> _loadReport() async {
+    state = state.copyWith(clients: const AsyncValue.loading());
+    try {
+      final clients = await _repository.getTopClientsByDateRange(
+        state.dateRange.start,
+        state.dateRange.end,
+        limit: 10,
+      );
+      state = state.copyWith(clients: AsyncValue.data(clients));
+    } catch (e, st) {
+      state = state.copyWith(clients: AsyncValue.error(e, st));
+    }
+  }
+
+  void setPreset(DateRangePreset preset) {
+    if (preset == DateRangePreset.custom) {
+      state = state.copyWith(preset: preset);
+    } else {
+      final dateRange = preset.getDateRange();
+      state = state.copyWith(preset: preset, dateRange: dateRange);
+      _loadReport();
+    }
+  }
+
+  void setCustomDateRange(DateTimeRange dateRange) {
+    state = state.copyWith(
+      preset: DateRangePreset.custom,
+      dateRange: dateRange,
+    );
+    _loadReport();
+  }
+
+  void refresh() {
+    _loadReport();
+  }
+}
+
+/// Provider for top clients report state
+final topClientsReportProvider =
+    StateNotifierProvider<TopClientsReportNotifier, TopClientsReportState>(
+        (ref) {
+  final repository = ref.watch(reportsRepositoryProvider);
+  return TopClientsReportNotifier(repository);
+});

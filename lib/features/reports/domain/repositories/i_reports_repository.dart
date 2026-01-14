@@ -11,6 +11,13 @@ abstract class IReportsRepository {
   /// Get top clients by revenue
   Future<List<ClientRevenue>> getTopClients({int limit = 5});
 
+  /// Get top clients by revenue within a date range
+  Future<List<ClientRevenue>> getTopClientsByDateRange(
+    DateTime start,
+    DateTime end, {
+    int limit = 10,
+  });
+
   /// Get expenses by category for a date range
   Future<List<CategoryExpense>> getExpensesByCategory(
     DateTime start,
