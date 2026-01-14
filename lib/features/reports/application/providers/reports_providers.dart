@@ -264,3 +264,92 @@ final topClientsReportProvider =
   final repository = ref.watch(reportsRepositoryProvider);
   return TopClientsReportNotifier(repository);
 });
+
+/// State for expense by category report
+class ExpenseCategoryReportState {
+  final DateRangePreset preset;
+  final DateTimeRange dateRange;
+  final AsyncValue<List<CategoryExpense>> categories;
+
+  const ExpenseCategoryReportState({
+    required this.preset,
+    required this.dateRange,
+    required this.categories,
+  });
+
+  ExpenseCategoryReportState copyWith({
+    DateRangePreset? preset,
+    DateTimeRange? dateRange,
+    AsyncValue<List<CategoryExpense>>? categories,
+  }) {
+    return ExpenseCategoryReportState(
+      preset: preset ?? this.preset,
+      dateRange: dateRange ?? this.dateRange,
+      categories: categories ?? this.categories,
+    );
+  }
+
+  /// Calculate total expenses from all categories
+  double get totalExpenses {
+    return categories.valueOrNull
+            ?.fold<double>(0, (sum, c) => sum + c.amount) ??
+        0;
+  }
+}
+
+/// Notifier for expense by category report
+class ExpenseCategoryReportNotifier
+    extends StateNotifier<ExpenseCategoryReportState> {
+  final IReportsRepository _repository;
+
+  ExpenseCategoryReportNotifier(this._repository)
+      : super(ExpenseCategoryReportState(
+          preset: DateRangePreset.yearToDate,
+          dateRange: DateRangePreset.yearToDate.getDateRange(),
+          categories: const AsyncValue.loading(),
+        )) {
+    _loadReport();
+  }
+
+  Future<void> _loadReport() async {
+    state = state.copyWith(categories: const AsyncValue.loading());
+    try {
+      final categories = await _repository.getExpensesByCategory(
+        state.dateRange.start,
+        state.dateRange.end,
+      );
+      state = state.copyWith(categories: AsyncValue.data(categories));
+    } catch (e, st) {
+      state = state.copyWith(categories: AsyncValue.error(e, st));
+    }
+  }
+
+  void setPreset(DateRangePreset preset) {
+    if (preset == DateRangePreset.custom) {
+      state = state.copyWith(preset: preset);
+    } else {
+      final dateRange = preset.getDateRange();
+      state = state.copyWith(preset: preset, dateRange: dateRange);
+      _loadReport();
+    }
+  }
+
+  void setCustomDateRange(DateTimeRange dateRange) {
+    state = state.copyWith(
+      preset: DateRangePreset.custom,
+      dateRange: dateRange,
+    );
+    _loadReport();
+  }
+
+  void refresh() {
+    _loadReport();
+  }
+}
+
+/// Provider for expense by category report state
+final expenseCategoryReportProvider = StateNotifierProvider<
+    ExpenseCategoryReportNotifier, ExpenseCategoryReportState>((ref) {
+  final repository = ref.watch(reportsRepositoryProvider);
+  return ExpenseCategoryReportNotifier(repository);
+});

@@ -33,6 +33,8 @@ class IncomeExpenseReportPage extends ConsumerWidget {
             onSelected: (value) {
               if (value == 'top-clients') {
                 context.push('/reports/top-clients');
+              } else if (value == 'expense-category') {
+                context.push('/reports/expenses-by-category');
               }
             },
             itemBuilder: (context) => [
@@ -41,6 +43,14 @@ class IncomeExpenseReportPage extends ConsumerWidget {
                 child: ListTile(
                   leading: Icon(Icons.people),
                   title: Text('Top Clients'),
+                  contentPadding: EdgeInsets.zero,
+                ),
+              ),
+              const PopupMenuItem(
+                value: 'expense-category',
+                child: ListTile(
+                  leading: Icon(Icons.pie_chart),
+                  title: Text('Expenses by Category'),
                   contentPadding: EdgeInsets.zero,
                 ),
               ),

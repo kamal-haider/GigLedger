@@ -12,5 +12,6 @@ export 'data/repositories/reports_repository_impl.dart';
 export 'application/providers/reports_providers.dart';
 
 // Presentation
+export 'presentation/pages/expense_category_report_page.dart';
 export 'presentation/pages/income_expense_report_page.dart';
 export 'presentation/pages/top_clients_report_page.dart';

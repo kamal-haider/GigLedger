@@ -4,26 +4,28 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 
+import '../../../expenses/application/providers/expense_providers.dart';
+import '../../../expenses/domain/models/expense.dart';
 import '../../application/providers/reports_providers.dart';
 import '../../domain/models/income_report.dart';
 
-/// Top Clients Report Page
-class TopClientsReportPage extends ConsumerWidget {
-  const TopClientsReportPage({super.key});
+/// Expense by Category Report Page
+class ExpenseCategoryReportPage extends ConsumerWidget {
+  const ExpenseCategoryReportPage({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final reportState = ref.watch(topClientsReportProvider);
+    final reportState = ref.watch(expenseCategoryReportProvider);
     final theme = Theme.of(context);
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Top Clients'),
+        title: const Text('Expenses by Category'),
         actions: [
           IconButton(
             icon: const Icon(Icons.refresh),
             onPressed: () {
-              ref.read(topClientsReportProvider.notifier).refresh();
+              ref.read(expenseCategoryReportProvider.notifier).refresh();
             },
             tooltip: 'Refresh',
           ),
@@ -33,8 +35,8 @@ class TopClientsReportPage extends ConsumerWidget {
             onSelected: (value) {
               if (value == 'income-expense') {
                 context.go('/reports');
-              } else if (value == 'expense-category') {
-                context.push('/reports/expenses-by-category');
+              } else if (value == 'top-clients') {
+                context.push('/reports/top-clients');
               }
             },
             itemBuilder: (context) => [
@@ -47,10 +49,10 @@ class TopClientsReportPage extends ConsumerWidget {
                 ),
               ),
               const PopupMenuItem(
-                value: 'expense-category',
+                value: 'top-clients',
                 child: ListTile(
-                  leading: Icon(Icons.pie_chart),
-                  title: Text('Expenses by Category'),
+                  leading: Icon(Icons.people),
+                  title: Text('Top Clients'),
                   contentPadding: EdgeInsets.zero,
                 ),
               ),
@@ -65,7 +67,9 @@ class TopClientsReportPage extends ConsumerWidget {
             selectedPreset: reportState.preset,
             dateRange: reportState.dateRange,
             onPresetChanged: (preset) {
-              ref.read(topClientsReportProvider.notifier).setPreset(preset);
+              ref
+                  .read(expenseCategoryReportProvider.notifier)
+                  .setPreset(preset);
             },
             onCustomDateRange: () async {
               final now = DateTime.now();
@@ -86,7 +90,7 @@ class TopClientsReportPage extends ConsumerWidget {
               );
               if (picked != null) {
                 ref
-                    .read(topClientsReportProvider.notifier)
+                    .read(expenseCategoryReportProvider.notifier)
                     .setCustomDateRange(picked);
               }
             },
@@ -94,10 +98,10 @@ class TopClientsReportPage extends ConsumerWidget {
           const Divider(height: 1),
           // Report content
           Expanded(
-            child: reportState.clients.when(
-              data: (clients) => _ReportContent(
-                clients: clients,
-                totalRevenue: reportState.totalRevenue,
+            child: reportState.categories.when(
+              data: (categories) => _ReportContent(
+                categories: categories,
+                totalExpenses: reportState.totalExpenses,
               ),
               loading: () => const Center(child: CircularProgressIndicator()),
               error: (error, _) => Center(
@@ -112,7 +116,9 @@ class TopClientsReportPage extends ConsumerWidget {
                     const SizedBox(height: 8),
                     TextButton(
                       onPressed: () {
-                        ref.read(topClientsReportProvider.notifier).refresh();
+                        ref
+                            .read(expenseCategoryReportProvider.notifier)
+                            .refresh();
                       },
                       child: const Text('Retry'),
                     ),
@@ -185,20 +191,20 @@ class _DateRangeSelector extends StatelessWidget {
   }
 }
 
-class _ReportContent extends StatelessWidget {
-  final List<ClientRevenue> clients;
-  final double totalRevenue;
+class _ReportContent extends ConsumerWidget {
+  final List<CategoryExpense> categories;
+  final double totalExpenses;
 
   const _ReportContent({
-    required this.clients,
-    required this.totalRevenue,
+    required this.categories,
+    required this.totalExpenses,
   });
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final currencyFormat = NumberFormat.currency(symbol: r'$');
 
-    if (clients.isEmpty) {
+    if (categories.isEmpty) {
       return _EmptyState();
     }
 
@@ -207,23 +213,33 @@ class _ReportContent extends StatelessWidget {
       children: [
         // Summary card
         _SummaryCard(
-          totalRevenue: totalRevenue,
-          clientCount: clients.length,
+          totalExpenses: totalExpenses,
+          categoryCount: categories.length,
           currencyFormat: currencyFormat,
         ),
         const SizedBox(height: 24),
         // Pie chart
         _PieChartSection(
-          clients: clients,
-          totalRevenue: totalRevenue,
+          categories: categories,
+          totalExpenses: totalExpenses,
           currencyFormat: currencyFormat,
         ),
         const SizedBox(height: 24),
-        // Client table
-        _ClientTable(
-          clients: clients,
-          totalRevenue: totalRevenue,
+        // Category table
+        _CategoryTable(
+          categories: categories,
+          totalExpenses: totalExpenses,
           currencyFormat: currencyFormat,
+          onCategoryTap: (category) {
+            // Set the filter and navigate to expenses
+            final expenseCategory = ExpenseCategory.values.firstWhere(
+              (c) => c.name == category.category,
+              orElse: () => ExpenseCategory.other,
+            );
+            ref.read(expenseCategoryFilterProvider.notifier).state =
+                expenseCategory;
+            context.go('/expenses');
+          },
         ),
       ],
     );
@@ -241,18 +257,18 @@ class _EmptyState extends StatelessWidget {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Icon(
-              Icons.people_outline,
+              Icons.pie_chart_outline,
               size: 80,
               color: theme.colorScheme.primary.withValues(alpha: 0.5),
             ),
             const SizedBox(height: 24),
             Text(
-              'No client data for this period',
+              'No expenses for this period',
               style: theme.textTheme.headlineSmall,
             ),
             const SizedBox(height: 8),
             Text(
-              'Create and mark invoices as paid to see your top clients',
+              'Add expenses to see your spending breakdown by category',
               textAlign: TextAlign.center,
               style: TextStyle(color: theme.colorScheme.onSurfaceVariant),
             ),
@@ -264,13 +280,13 @@ class _EmptyState extends StatelessWidget {
 }
 
 class _SummaryCard extends StatelessWidget {
-  final double totalRevenue;
-  final int clientCount;
+  final double totalExpenses;
+  final int categoryCount;
   final NumberFormat currencyFormat;
 
   const _SummaryCard({
-    required this.totalRevenue,
-    required this.clientCount,
+    required this.totalExpenses,
+    required this.categoryCount,
     required this.currencyFormat,
   });
 
@@ -288,17 +304,17 @@ class _SummaryCard extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    'Total Revenue',
+                    'Total Expenses',
                     style: theme.textTheme.bodySmall?.copyWith(
                       color: theme.colorScheme.onSurfaceVariant,
                     ),
                   ),
                   const SizedBox(height: 4),
                   Text(
-                    currencyFormat.format(totalRevenue),
+                    currencyFormat.format(totalExpenses),
                     style: theme.textTheme.headlineMedium?.copyWith(
                       fontWeight: FontWeight.bold,
-                      color: Colors.green,
+                      color: Colors.red,
                     ),
                   ),
                 ],
@@ -313,14 +329,14 @@ class _SummaryCard extends StatelessWidget {
               child: Column(
                 children: [
                   Text(
-                    'Active Clients',
+                    'Categories',
                     style: theme.textTheme.bodySmall?.copyWith(
                       color: theme.colorScheme.onSurfaceVariant,
                     ),
                   ),
                   const SizedBox(height: 4),
                   Text(
-                    '$clientCount',
+                    '$categoryCount',
                     style: theme.textTheme.headlineMedium?.copyWith(
                       fontWeight: FontWeight.bold,
                       color: theme.colorScheme.primary,
@@ -337,27 +353,27 @@ class _SummaryCard extends StatelessWidget {
 }
 
 class _PieChartSection extends StatelessWidget {
-  final List<ClientRevenue> clients;
-  final double totalRevenue;
+  final List<CategoryExpense> categories;
+  final double totalExpenses;
   final NumberFormat currencyFormat;
 
   const _PieChartSection({
-    required this.clients,
-    required this.totalRevenue,
+    required this.categories,
+    required this.totalExpenses,
     required this.currencyFormat,
   });
 
   static const List<Color> _chartColors = [
-    Color(0xFF2196F3), // Blue
-    Color(0xFF4CAF50), // Green
-    Color(0xFFFFC107), // Amber
     Color(0xFFE91E63), // Pink
     Color(0xFF9C27B0), // Purple
-    Color(0xFF00BCD4), // Cyan
-    Color(0xFFFF5722), // Deep Orange
-    Color(0xFF795548), // Brown
-    Color(0xFF607D8B), // Blue Grey
+    Color(0xFF673AB7), // Deep Purple
     Color(0xFF3F51B5), // Indigo
+    Color(0xFF2196F3), // Blue
+    Color(0xFF00BCD4), // Cyan
+    Color(0xFF009688), // Teal
+    Color(0xFF4CAF50), // Green
+    Color(0xFFFFC107), // Amber
+    Color(0xFFFF5722), // Deep Orange
   ];
 
   @override
@@ -371,7 +387,7 @@ class _PieChartSection extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              'Revenue Distribution',
+              'Spending Distribution',
               style: theme.textTheme.titleMedium?.copyWith(
                 fontWeight: FontWeight.bold,
               ),
@@ -400,10 +416,10 @@ class _PieChartSection extends StatelessWidget {
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
                       crossAxisAlignment: CrossAxisAlignment.start,
-                      children: clients.take(5).toList().asMap().entries.map(
+                      children: categories.take(5).toList().asMap().entries.map(
                         (entry) {
                           final index = entry.key;
-                          final client = entry.value;
+                          final category = entry.value;
                           return Padding(
                             padding: const EdgeInsets.symmetric(vertical: 2),
                             child: Row(
@@ -420,7 +436,7 @@ class _PieChartSection extends StatelessWidget {
                                 const SizedBox(width: 6),
                                 Expanded(
                                   child: Text(
-                                    client.clientName,
+                                    category.displayName,
                                     style: theme.textTheme.bodySmall,
                                     overflow: TextOverflow.ellipsis,
                                   ),
@@ -443,21 +459,19 @@ class _PieChartSection extends StatelessWidget {
 
   List<PieChartSectionData> _getSections() {
     // Show top 5 individually, group rest as "Others"
-    final topClients = clients.take(5).toList();
-    final otherRevenue =
-        clients.skip(5).fold(0.0, (sum, c) => sum + c.totalRevenue);
+    final topCategories = categories.take(5).toList();
+    final otherAmount =
+        categories.skip(5).fold(0.0, (sum, c) => sum + c.amount);
 
     final sections = <PieChartSectionData>[];
 
-    for (var i = 0; i < topClients.length; i++) {
-      final client = topClients[i];
-      final percentage =
-          totalRevenue > 0 ? (client.totalRevenue / totalRevenue) * 100 : 0;
+    for (var i = 0; i < topCategories.length; i++) {
+      final category = topCategories[i];
       sections.add(
         PieChartSectionData(
           color: _chartColors[i % _chartColors.length],
-          value: client.totalRevenue,
-          title: '${percentage.toStringAsFixed(0)}%',
+          value: category.amount,
+          title: '${category.percentage.toStringAsFixed(0)}%',
           radius: 50,
           titleStyle: const TextStyle(
             fontSize: 12,
@@ -468,14 +482,14 @@ class _PieChartSection extends StatelessWidget {
       );
     }
 
-    // Add "Others" section if there are more than 5 clients
-    if (otherRevenue > 0) {
+    // Add "Others" section if there are more than 5 categories
+    if (otherAmount > 0) {
       final percentage =
-          totalRevenue > 0 ? (otherRevenue / totalRevenue) * 100 : 0;
+          totalExpenses > 0 ? (otherAmount / totalExpenses) * 100 : 0;
       sections.add(
         PieChartSectionData(
           color: Colors.grey,
-          value: otherRevenue,
+          value: otherAmount,
           title: '${percentage.toStringAsFixed(0)}%',
           radius: 50,
           titleStyle: const TextStyle(
@@ -491,15 +505,17 @@ class _PieChartSection extends StatelessWidget {
   }
 }
 
-class _ClientTable extends StatelessWidget {
-  final List<ClientRevenue> clients;
-  final double totalRevenue;
+class _CategoryTable extends StatelessWidget {
+  final List<CategoryExpense> categories;
+  final double totalExpenses;
   final NumberFormat currencyFormat;
+  final void Function(CategoryExpense) onCategoryTap;
 
-  const _ClientTable({
-    required this.clients,
-    required this.totalRevenue,
+  const _CategoryTable({
+    required this.categories,
+    required this.totalExpenses,
     required this.currencyFormat,
+    required this.onCategoryTap,
   });
 
   @override
@@ -513,7 +529,7 @@ class _ClientTable extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              'Client Rankings',
+              'Category Breakdown',
               style: theme.textTheme.titleMedium?.copyWith(
                 fontWeight: FontWeight.bold,
               ),
@@ -522,14 +538,13 @@ class _ClientTable extends StatelessWidget {
             // Header
             Row(
               children: [
-                const SizedBox(width: 32), // Rank column
-                const Expanded(flex: 3, child: Text('Client')),
+                const Expanded(flex: 3, child: Text('Category')),
                 Expanded(
                   flex: 2,
                   child: Text(
-                    'Revenue',
+                    'Amount',
                     textAlign: TextAlign.right,
-                    style: TextStyle(color: Colors.green.shade700),
+                    style: TextStyle(color: Colors.red.shade700),
                   ),
                 ),
                 const Expanded(
@@ -543,47 +558,28 @@ class _ClientTable extends StatelessWidget {
             ),
             const Divider(),
             // Data rows
-            ...clients.asMap().entries.map((entry) {
-              final rank = entry.key + 1;
-              final client = entry.value;
-              final percentage = totalRevenue > 0
-                  ? (client.totalRevenue / totalRevenue) * 100
-                  : 0;
-
+            ...categories.map((category) {
               return InkWell(
-                onTap: () {
-                  context.push('/clients/${client.clientId}');
-                },
+                onTap: () => onCategoryTap(category),
                 child: Padding(
                   padding: const EdgeInsets.symmetric(vertical: 12),
                   child: Row(
                     children: [
-                      SizedBox(
-                        width: 32,
-                        child: Text(
-                          '#$rank',
-                          style: TextStyle(
-                            fontWeight: FontWeight.bold,
-                            color: rank <= 3
-                                ? theme.colorScheme.primary
-                                : theme.colorScheme.onSurfaceVariant,
-                          ),
-                        ),
-                      ),
                       Expanded(
                         flex: 3,
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
+                        child: Row(
                           children: [
-                            Text(
-                              client.clientName,
-                              style:
-                                  const TextStyle(fontWeight: FontWeight.w500),
+                            Icon(
+                              _getCategoryIcon(category.category),
+                              size: 20,
+                              color: theme.colorScheme.primary,
                             ),
-                            Text(
-                              '${client.invoiceCount} invoice${client.invoiceCount == 1 ? '' : 's'}',
-                              style: theme.textTheme.bodySmall?.copyWith(
-                                color: theme.colorScheme.onSurfaceVariant,
+                            const SizedBox(width: 8),
+                            Expanded(
+                              child: Text(
+                                category.displayName,
+                                style: const TextStyle(
+                                    fontWeight: FontWeight.w500),
                               ),
                             ),
                           ],
@@ -592,10 +588,10 @@ class _ClientTable extends StatelessWidget {
                       Expanded(
                         flex: 2,
                         child: Text(
-                          currencyFormat.format(client.totalRevenue),
+                          currencyFormat.format(category.amount),
                           textAlign: TextAlign.right,
                           style: TextStyle(
-                            color: Colors.green.shade700,
+                            color: Colors.red.shade700,
                             fontWeight: FontWeight.w600,
                           ),
                         ),
@@ -603,7 +599,7 @@ class _ClientTable extends StatelessWidget {
                       Expanded(
                         flex: 1,
                         child: Text(
-                          '${percentage.toStringAsFixed(0)}%',
+                          '${category.percentage.toStringAsFixed(0)}%',
                           textAlign: TextAlign.right,
                           style: theme.textTheme.bodySmall,
                         ),
@@ -623,5 +619,32 @@ class _ClientTable extends StatelessWidget {
         ),
       ),
     );
+  }
+
+  IconData _getCategoryIcon(String category) {
+    switch (category) {
+      case 'software':
+        return Icons.computer;
+      case 'office':
+        return Icons.business;
+      case 'travel':
+        return Icons.flight;
+      case 'meals':
+        return Icons.restaurant;
+      case 'utilities':
+        return Icons.power;
+      case 'marketing':
+        return Icons.campaign;
+      case 'equipment':
+        return Icons.build;
+      case 'professional':
+        return Icons.work;
+      case 'insurance':
+        return Icons.security;
+      case 'taxes':
+        return Icons.receipt_long;
+      default:
+        return Icons.category;
+    }
   }
 }
