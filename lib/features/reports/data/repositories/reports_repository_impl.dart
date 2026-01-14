@@ -26,11 +26,10 @@ class ReportsRepositoryImpl implements IReportsRepository {
         !inv.paidDate!.isAfter(end));
 
     // Filter expenses in date range
-    final rangeExpenses = expenses.where((exp) =>
-        !exp.date.isBefore(start) && !exp.date.isAfter(end));
+    final rangeExpenses = expenses
+        .where((exp) => !exp.date.isBefore(start) && !exp.date.isAfter(end));
 
-    final totalIncome =
-        paidInvoices.fold(0.0, (sum, inv) => sum + inv.total);
+    final totalIncome = paidInvoices.fold(0.0, (sum, inv) => sum + inv.total);
     final totalExpenses =
         rangeExpenses.fold(0.0, (sum, exp) => sum + exp.amount);
 
@@ -75,8 +74,8 @@ class ReportsRepositoryImpl implements IReportsRepository {
         !inv.paidDate!.isBefore(start) &&
         !inv.paidDate!.isAfter(end));
 
-    final rangeExpenses = expenses.where((exp) =>
-        !exp.date.isBefore(start) && !exp.date.isAfter(end));
+    final rangeExpenses = expenses
+        .where((exp) => !exp.date.isBefore(start) && !exp.date.isAfter(end));
 
     return _generateMonthlyData(
       start,
@@ -172,12 +171,15 @@ class ReportsRepositoryImpl implements IReportsRepository {
     final sorted = clientMap.values.toList()
       ..sort((a, b) => b.totalRevenue.compareTo(a.totalRevenue));
 
-    return sorted.take(limit).map((data) => ClientRevenue(
-          clientId: data.clientId,
-          clientName: data.clientName,
-          totalRevenue: data.totalRevenue,
-          invoiceCount: data.invoiceCount,
-        )).toList();
+    return sorted
+        .take(limit)
+        .map((data) => ClientRevenue(
+              clientId: data.clientId,
+              clientName: data.clientName,
+              totalRevenue: data.totalRevenue,
+              invoiceCount: data.invoiceCount,
+            ))
+        .toList();
   }
 
   List<CategoryExpense> _getExpensesByCategory(List<Expense> expenses) {

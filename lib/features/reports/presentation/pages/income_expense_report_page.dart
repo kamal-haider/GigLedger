@@ -368,7 +368,8 @@ class _ChartSection extends StatelessWidget {
                     touchTooltipData: BarTouchTooltipData(
                       getTooltipItem: (group, groupIndex, rod, rodIndex) {
                         final month = report.monthlyData[groupIndex];
-                        final value = rodIndex == 0 ? month.income : month.expenses;
+                        final value =
+                            rodIndex == 0 ? month.income : month.expenses;
                         final label = rodIndex == 0 ? 'Income' : 'Expenses';
                         return BarTooltipItem(
                           '$label\n${currencyFormat.format(value)}',
@@ -561,7 +562,8 @@ class _MonthlyBreakdown extends StatelessWidget {
                       Expanded(
                         flex: 2,
                         child: Text(month.fullLabel,
-                            style: const TextStyle(fontWeight: FontWeight.w500)),
+                            style:
+                                const TextStyle(fontWeight: FontWeight.w500)),
                       ),
                       Expanded(
                         flex: 2,

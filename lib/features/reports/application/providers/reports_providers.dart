@@ -104,7 +104,8 @@ class IncomeExpenseReportState {
 }
 
 /// Notifier for income vs expense report
-class IncomeExpenseReportNotifier extends StateNotifier<IncomeExpenseReportState> {
+class IncomeExpenseReportNotifier
+    extends StateNotifier<IncomeExpenseReportState> {
   final IReportsRepository _repository;
 
   IncomeExpenseReportNotifier(this._repository)
@@ -154,9 +155,8 @@ class IncomeExpenseReportNotifier extends StateNotifier<IncomeExpenseReportState
 }
 
 /// Provider for income vs expense report state
-final incomeExpenseReportProvider =
-    StateNotifierProvider<IncomeExpenseReportNotifier, IncomeExpenseReportState>(
-        (ref) {
+final incomeExpenseReportProvider = StateNotifierProvider<
+    IncomeExpenseReportNotifier, IncomeExpenseReportState>((ref) {
   final repository = ref.watch(reportsRepositoryProvider);
   return IncomeExpenseReportNotifier(repository);
 });
