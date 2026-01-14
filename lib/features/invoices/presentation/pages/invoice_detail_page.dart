@@ -231,13 +231,14 @@ class _InvoiceDetailContentState extends ConsumerState<_InvoiceDetailContent> {
           .read(invoiceNotifierProvider.notifier)
           .deleteInvoice(invoice.id);
       if (mounted) {
+        // Navigate away first before the stream updates with null
+        context.go('/invoices');
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
             content: Text('Invoice deleted'),
             behavior: SnackBarBehavior.floating,
           ),
         );
-        context.pop();
       }
     } catch (e) {
       if (mounted) {

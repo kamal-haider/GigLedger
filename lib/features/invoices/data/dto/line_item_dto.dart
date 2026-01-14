@@ -1,4 +1,8 @@
+import 'package:uuid/uuid.dart';
+
 import '../../domain/models/line_item.dart';
+
+const _uuid = Uuid();
 
 /// DTO for LineItem matching Firestore document structure
 class LineItemDTO {
@@ -37,8 +41,10 @@ class LineItemDTO {
   }
 
   LineItem toDomain() {
+    // Generate a UUID if the ID is null or empty to prevent duplicate key errors
+    final itemId = (id != null && id!.isNotEmpty) ? id! : _uuid.v4();
     return LineItem(
-      id: id ?? '',
+      id: itemId,
       description: description ?? '',
       quantity: quantity ?? 0,
       rate: rate ?? 0,

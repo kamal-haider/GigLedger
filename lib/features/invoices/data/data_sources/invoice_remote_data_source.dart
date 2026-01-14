@@ -211,11 +211,11 @@ class InvoiceRemoteDataSourceImpl implements InvoiceRemoteDataSource {
   @override
   Future<String> getNextInvoiceNumber() async {
     try {
-      // Get the highest invoice number
+      // Get the highest invoice number - force server read to avoid cache
       final snapshot = await _invoicesCollection
           .orderBy('invoiceNumber', descending: true)
           .limit(1)
-          .get();
+          .get(const GetOptions(source: Source.server));
 
       if (snapshot.docs.isEmpty) {
         return 'INV-0001';
