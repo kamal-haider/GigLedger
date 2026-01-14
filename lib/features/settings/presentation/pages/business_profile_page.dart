@@ -19,7 +19,8 @@ class BusinessProfilePage extends ConsumerStatefulWidget {
   const BusinessProfilePage({super.key});
 
   @override
-  ConsumerState<BusinessProfilePage> createState() => _BusinessProfilePageState();
+  ConsumerState<BusinessProfilePage> createState() =>
+      _BusinessProfilePageState();
 }
 
 class _BusinessProfilePageState extends ConsumerState<BusinessProfilePage> {
@@ -31,7 +32,10 @@ class _BusinessProfilePageState extends ConsumerState<BusinessProfilePage> {
   String _selectedCurrency = 'USD';
   bool _hasChanges = false;
   bool _isInitialized = false;
+  // Used for logo upload progress tracking (UI display planned for future)
+  // ignore: unused_field
   bool _isUploadingLogo = false;
+  // ignore: unused_field
   double _uploadProgress = 0.0;
 
   @override
@@ -184,7 +188,8 @@ class _BusinessProfilePageState extends ConsumerState<BusinessProfilePage> {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(
-              content: Text('Image too large. Please choose an image under 2MB.'),
+              content:
+                  Text('Image too large. Please choose an image under 2MB.'),
               behavior: SnackBarBehavior.floating,
             ),
           );

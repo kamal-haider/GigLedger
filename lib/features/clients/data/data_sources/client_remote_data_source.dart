@@ -47,7 +47,8 @@ class ClientRemoteDataSourceImpl implements ClientRemoteDataSource {
   String get _userId {
     final user = _firebaseAuth.currentUser;
     if (user == null) {
-      throw const AuthException('User not authenticated', code: 'not-authenticated');
+      throw const AuthException('User not authenticated',
+          code: 'not-authenticated');
     }
     return user.uid;
   }
@@ -63,7 +64,8 @@ class ClientRemoteDataSourceImpl implements ClientRemoteDataSource {
           .map((doc) => ClientDTO.fromJson(doc.data(), doc.id))
           .toList();
     } catch (e) {
-      throw ServerException('Failed to get clients: $e', code: 'firestore-read-error');
+      throw ServerException('Failed to get clients: $e',
+          code: 'firestore-read-error');
     }
   }
 
@@ -74,14 +76,17 @@ class ClientRemoteDataSourceImpl implements ClientRemoteDataSource {
       if (!doc.exists || doc.data() == null) return null;
       return ClientDTO.fromJson(doc.data()!, doc.id);
     } catch (e) {
-      throw ServerException('Failed to get client: $e', code: 'firestore-read-error');
+      throw ServerException('Failed to get client: $e',
+          code: 'firestore-read-error');
     }
   }
 
   @override
   Stream<List<ClientDTO>> watchAll() {
     return _clientsCollection.orderBy('name').snapshots().map((snapshot) =>
-        snapshot.docs.map((doc) => ClientDTO.fromJson(doc.data(), doc.id)).toList());
+        snapshot.docs
+            .map((doc) => ClientDTO.fromJson(doc.data(), doc.id))
+            .toList());
   }
 
   @override
@@ -107,7 +112,8 @@ class ClientRemoteDataSourceImpl implements ClientRemoteDataSource {
       final doc = await docRef.get();
       return ClientDTO.fromJson(doc.data()!, doc.id);
     } catch (e) {
-      throw ServerException('Failed to create client: $e', code: 'firestore-write-error');
+      throw ServerException('Failed to create client: $e',
+          code: 'firestore-write-error');
     }
   }
 
@@ -121,7 +127,8 @@ class ClientRemoteDataSourceImpl implements ClientRemoteDataSource {
       final doc = await _clientsCollection.doc(client.id).get();
       return ClientDTO.fromJson(doc.data()!, doc.id);
     } catch (e) {
-      throw ServerException('Failed to update client: $e', code: 'firestore-write-error');
+      throw ServerException('Failed to update client: $e',
+          code: 'firestore-write-error');
     }
   }
 
@@ -130,7 +137,8 @@ class ClientRemoteDataSourceImpl implements ClientRemoteDataSource {
     try {
       await _clientsCollection.doc(id).delete();
     } catch (e) {
-      throw ServerException('Failed to delete client: $e', code: 'firestore-write-error');
+      throw ServerException('Failed to delete client: $e',
+          code: 'firestore-write-error');
     }
   }
 
@@ -140,12 +148,14 @@ class ClientRemoteDataSourceImpl implements ClientRemoteDataSource {
       final snapshot = await _clientsCollection.count().get();
       return snapshot.count ?? 0;
     } catch (e) {
-      throw ServerException('Failed to get client count: $e', code: 'firestore-read-error');
+      throw ServerException('Failed to get client count: $e',
+          code: 'firestore-read-error');
     }
   }
 
   @override
-  Future<void> updateTotals(String clientId, {double? billed, double? paid}) async {
+  Future<void> updateTotals(String clientId,
+      {double? billed, double? paid}) async {
     try {
       final updates = <String, dynamic>{'updatedAt': Timestamp.now()};
       if (billed != null) updates['totalBilled'] = FieldValue.increment(billed);
@@ -153,7 +163,8 @@ class ClientRemoteDataSourceImpl implements ClientRemoteDataSource {
 
       await _clientsCollection.doc(clientId).update(updates);
     } catch (e) {
-      throw ServerException('Failed to update totals: $e', code: 'firestore-write-error');
+      throw ServerException('Failed to update totals: $e',
+          code: 'firestore-write-error');
     }
   }
 }

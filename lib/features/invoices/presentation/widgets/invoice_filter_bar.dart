@@ -1,18 +1,18 @@
 import 'package:flutter/material.dart';
 
-import '../../domain/models/expense.dart';
+import '../../domain/models/invoice.dart';
 
-/// Filter bar widget for expenses
-class ExpenseFilterBar extends StatelessWidget {
-  final ExpenseCategory? selectedCategory;
-  final ValueChanged<ExpenseCategory?>? onCategoryChanged;
+/// Filter bar widget for invoices
+class InvoiceFilterBar extends StatelessWidget {
+  final InvoiceStatus? selectedStatus;
+  final ValueChanged<InvoiceStatus?>? onStatusChanged;
   final VoidCallback? onDateRangePressed;
   final bool hasDateFilter;
 
-  const ExpenseFilterBar({
+  const InvoiceFilterBar({
     super.key,
-    this.selectedCategory,
-    this.onCategoryChanged,
+    this.selectedStatus,
+    this.onStatusChanged,
     this.onDateRangePressed,
     this.hasDateFilter = false,
   });
@@ -38,20 +38,21 @@ class ExpenseFilterBar extends StatelessWidget {
             onSelected: (_) => onDateRangePressed?.call(),
           ),
           const SizedBox(width: 8),
-          // Category filter
+          // All statuses filter
           FilterChip(
-            label: const Text('All Categories'),
-            selected: selectedCategory == null,
-            onSelected: (_) => onCategoryChanged?.call(null),
+            label: const Text('All'),
+            selected: selectedStatus == null,
+            onSelected: (_) => onStatusChanged?.call(null),
           ),
           const SizedBox(width: 8),
-          ...ExpenseCategory.values.map((category) => Padding(
+          // Status filters
+          ...InvoiceStatus.values.map((status) => Padding(
                 padding: const EdgeInsets.only(right: 8),
                 child: FilterChip(
-                  label: Text(category.displayName),
-                  selected: selectedCategory == category,
-                  onSelected: (_) => onCategoryChanged?.call(
-                    selectedCategory == category ? null : category,
+                  label: Text(status.displayName),
+                  selected: selectedStatus == status,
+                  onSelected: (_) => onStatusChanged?.call(
+                    selectedStatus == status ? null : status,
                   ),
                 ),
               )),

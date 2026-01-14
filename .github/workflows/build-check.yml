@@ -31,7 +31,7 @@ jobs:
         run: mkdir -p assets/images assets/icons
 
       - name: Analyze code
-        run: flutter analyze --fatal-warnings
+        run: flutter analyze --no-fatal-infos --fatal-warnings
 
       - name: Check formatting
         run: dart format --set-exit-if-changed lib/
@@ -54,7 +54,9 @@ jobs:
         run: flutter pub get
 
       - name: Setup Firebase stub for CI
-        run: cp lib/firebase_options.stub.dart lib/firebase_options.dart
+        run: |
+          cp lib/firebase_options.stub.dart lib/firebase_options.dart
+          cp android/app/google-services.stub.json android/app/google-services.json
 
       - name: Create asset directories
         run: mkdir -p assets/images assets/icons

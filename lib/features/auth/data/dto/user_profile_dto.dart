@@ -30,7 +30,8 @@ class UserProfileDTO {
     this.updatedAt,
   });
 
-  factory UserProfileDTO.fromJson(Map<String, dynamic> json, String documentId) {
+  factory UserProfileDTO.fromJson(
+      Map<String, dynamic> json, String documentId) {
     return UserProfileDTO(
       id: documentId,
       email: json['email'] as String?,

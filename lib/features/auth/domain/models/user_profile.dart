@@ -33,7 +33,8 @@ class UserProfile {
   });
 
   /// Whether the user has completed business profile setup
-  bool get hasCompletedSetup => businessName != null && businessName!.isNotEmpty;
+  bool get hasCompletedSetup =>
+      businessName != null && businessName!.isNotEmpty;
 
   /// Display name for UI (business name or email)
   String get displayNameOrEmail => businessName ?? displayName ?? email;
@@ -57,9 +58,8 @@ class UserProfile {
     return UserProfile(
       id: id ?? this.id,
       email: email ?? this.email,
-      displayName: displayName == _undefined
-          ? this.displayName
-          : displayName as String?,
+      displayName:
+          displayName == _undefined ? this.displayName : displayName as String?,
       businessName: businessName == _undefined
           ? this.businessName
           : businessName as String?,

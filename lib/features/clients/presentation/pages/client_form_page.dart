@@ -69,7 +69,9 @@ class _ClientFormPageState extends ConsumerState<ClientFormPage> {
 
   void _syncControllersWithState(ClientFormState formState) {
     // Sync controllers once when data is loaded (for edit mode)
-    if (!_controllersInitialized && !formState.isLoading && formState.name.isNotEmpty) {
+    if (!_controllersInitialized &&
+        !formState.isLoading &&
+        formState.name.isNotEmpty) {
       _nameController.text = formState.name;
       _emailController.text = formState.email;
       _phoneController.text = formState.phone;
@@ -318,9 +320,8 @@ class _ClientFormPageState extends ConsumerState<ClientFormPage> {
                                   color: Colors.white,
                                 ),
                               )
-                            : Text(isEditMode
-                                ? 'Update Client'
-                                : 'Create Client'),
+                            : Text(
+                                isEditMode ? 'Update Client' : 'Create Client'),
                       ),
                     ),
                     const SizedBox(height: 32),

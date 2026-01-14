@@ -31,7 +31,9 @@ class ReceiptPicker extends ConsumerWidget {
     final notifier = ref.read(receiptUploadProvider(expenseId).notifier);
 
     // Initialize with existing receipt on first build
-    if (initialReceiptUrl != null && state.uploadedUrl == null && !state.isProcessing) {
+    if (initialReceiptUrl != null &&
+        state.uploadedUrl == null &&
+        !state.isProcessing) {
       Future.microtask(() => notifier.setExistingReceipt(initialReceiptUrl));
     }
 
@@ -299,7 +301,8 @@ class ReceiptPicker extends ConsumerWidget {
                   Text(
                     'Tap to take photo or choose from gallery',
                     style: theme.textTheme.bodySmall?.copyWith(
-                      color: theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.7),
+                      color: theme.colorScheme.onSurfaceVariant
+                          .withValues(alpha: 0.7),
                     ),
                   ),
                 ],
@@ -315,8 +318,9 @@ class ReceiptPicker extends ConsumerWidget {
     );
   }
 
-  void _showImageSourcePicker(BuildContext context, ReceiptUploadNotifier notifier) {
-    showModalBottomSheet(
+  void _showImageSourcePicker(
+      BuildContext context, ReceiptUploadNotifier notifier) {
+    showModalBottomSheet<void>(
       context: context,
       builder: (context) => SafeArea(
         child: Column(

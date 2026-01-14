@@ -64,8 +64,9 @@ class ExpenseRepositoryImpl implements IExpenseRepository {
 
   @override
   Stream<List<Expense>> watchAll() {
-    return _dataSource.watchAll().map(
-        (dtos) => dtos.map((dto) => dto.toDomain()).toList());
+    return _dataSource
+        .watchAll()
+        .map((dtos) => dtos.map((dto) => dto.toDomain()).toList());
   }
 
   @override
@@ -169,7 +170,8 @@ class ExpenseRepositoryImpl implements IExpenseRepository {
     final expenses = await getByDateRange(start, end);
     final result = <ExpenseCategory, double>{};
     for (final expense in expenses) {
-      result[expense.category] = (result[expense.category] ?? 0) + expense.amount;
+      result[expense.category] =
+          (result[expense.category] ?? 0) + expense.amount;
     }
     return result;
   }

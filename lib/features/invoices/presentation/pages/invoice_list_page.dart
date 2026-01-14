@@ -3,54 +3,61 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 
-import '../../application/providers/expense_providers.dart';
-import '../widgets/expense_filter_bar.dart';
-import '../widgets/expense_list_tile.dart';
+import '../../application/providers/invoice_providers.dart';
+import '../../domain/models/invoice.dart';
+import '../widgets/invoice_filter_bar.dart';
+import '../widgets/invoice_list_tile.dart';
 
-/// Expense list page showing all expenses with filtering
-class ExpenseListPage extends ConsumerWidget {
-  const ExpenseListPage({super.key});
+/// Invoice list page showing all invoices with filtering
+class InvoiceListPage extends ConsumerWidget {
+  const InvoiceListPage({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final filteredExpenses = ref.watch(filteredExpensesProvider);
-    final selectedCategory = ref.watch(expenseCategoryFilterProvider);
-    final dateRange = ref.watch(expenseDateRangeProvider);
+    final filteredInvoices = ref.watch(filteredInvoicesProvider);
+    final selectedStatus = ref.watch(invoiceStatusFilterProvider);
+    final dateRange = ref.watch(invoiceDateRangeProvider);
     final theme = Theme.of(context);
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Expenses'),
+        title: const Text('Invoices'),
       ),
       body: Column(
         children: [
-          ExpenseFilterBar(
-            selectedCategory: selectedCategory,
-            onCategoryChanged: (category) {
-              ref.read(expenseCategoryFilterProvider.notifier).state = category;
+          InvoiceFilterBar(
+            selectedStatus: selectedStatus,
+            onStatusChanged: (status) {
+              ref.read(invoiceStatusFilterProvider.notifier).state = status;
             },
             hasDateFilter: dateRange != null,
             onDateRangePressed: () async {
               final picked = await showDateRangePicker(
                 context: context,
                 firstDate: DateTime(2020),
-                lastDate: DateTime.now(),
+                lastDate: DateTime.now().add(const Duration(days: 365)),
                 initialDateRange: dateRange != null
                     ? DateTimeRange(start: dateRange.start, end: dateRange.end)
                     : null,
               );
               if (picked != null) {
-                ref.read(expenseDateRangeProvider.notifier).state =
+                ref.read(invoiceDateRangeProvider.notifier).state =
                     DateTimeRange(start: picked.start, end: picked.end);
               } else {
-                ref.read(expenseDateRangeProvider.notifier).state = null;
+                ref.read(invoiceDateRangeProvider.notifier).state = null;
               }
             },
           ),
-          // Total amount summary
-          filteredExpenses.when(
-            data: (expenses) {
-              final total = expenses.fold(0.0, (sum, e) => sum + e.amount);
+          // Summary section
+          filteredInvoices.when(
+            data: (invoices) {
+              final totalAmount =
+                  invoices.fold(0.0, (sum, inv) => sum + inv.total);
+              final paidAmount = invoices
+                  .where((inv) => inv.status == InvoiceStatus.paid)
+                  .fold(0.0, (sum, inv) => sum + inv.total);
+              final pendingAmount = totalAmount - paidAmount;
+
               return Container(
                 padding:
                     const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
@@ -58,17 +65,31 @@ class ExpenseListPage extends ConsumerWidget {
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Text(
-                      '${expenses.length} expense${expenses.length == 1 ? '' : 's'}',
+                      '${invoices.length} invoice${invoices.length == 1 ? '' : 's'}',
                       style: theme.textTheme.bodyMedium?.copyWith(
                         color: theme.colorScheme.onSurfaceVariant,
                       ),
                     ),
-                    Text(
-                      'Total: ${NumberFormat.currency(symbol: '\$').format(total)}',
-                      style: theme.textTheme.titleMedium?.copyWith(
-                        fontWeight: FontWeight.bold,
-                        color: theme.colorScheme.error,
-                      ),
+                    Row(
+                      children: [
+                        if (pendingAmount > 0) ...[
+                          Text(
+                            'Pending: ${NumberFormat.currency(symbol: '\$').format(pendingAmount)}',
+                            style: theme.textTheme.bodySmall?.copyWith(
+                              color: Colors.orange,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                          const SizedBox(width: 12),
+                        ],
+                        Text(
+                          'Total: ${NumberFormat.currency(symbol: '\$').format(totalAmount)}',
+                          style: theme.textTheme.titleMedium?.copyWith(
+                            fontWeight: FontWeight.bold,
+                            color: Colors.green,
+                          ),
+                        ),
+                      ],
                     ),
                   ],
                 ),
@@ -79,22 +100,22 @@ class ExpenseListPage extends ConsumerWidget {
           ),
           const Divider(height: 1),
           Expanded(
-            child: filteredExpenses.when(
-              data: (expenses) {
-                if (expenses.isEmpty) {
+            child: filteredInvoices.when(
+              data: (invoices) {
+                if (invoices.isEmpty) {
                   return _buildEmptyState(context, ref);
                 }
                 return ListView.builder(
-                  itemCount: expenses.length,
+                  itemCount: invoices.length,
                   padding: const EdgeInsets.only(bottom: 80),
                   itemBuilder: (context, index) {
-                    final expense = expenses[index];
-                    return ExpenseListTile(
-                      expense: expense,
+                    final invoice = invoices[index];
+                    return InvoiceListTile(
+                      invoice: invoice,
                       onTap: () {
                         context.pushNamed(
-                          'expense-detail',
-                          pathParameters: {'id': expense.id},
+                          'invoice-detail',
+                          pathParameters: {'id': invoice.id},
                         );
                       },
                     );
@@ -113,12 +134,12 @@ class ExpenseListPage extends ConsumerWidget {
                     ),
                     const SizedBox(height: 16),
                     Text(
-                      'Failed to load expenses',
+                      'Failed to load invoices',
                       style: theme.textTheme.titleMedium,
                     ),
                     const SizedBox(height: 8),
                     TextButton(
-                      onPressed: () => ref.refresh(expensesStreamProvider),
+                      onPressed: () => ref.refresh(invoicesStreamProvider),
                       child: const Text('Retry'),
                     ),
                   ],
@@ -130,18 +151,18 @@ class ExpenseListPage extends ConsumerWidget {
       ),
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () {
-          context.push('/expenses/new');
+          context.push('/invoices/new');
         },
         icon: const Icon(Icons.add),
-        label: const Text('Add Expense'),
+        label: const Text('New Invoice'),
       ),
     );
   }
 
   Widget _buildEmptyState(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
-    final hasFilters = ref.watch(expenseCategoryFilterProvider) != null ||
-        ref.watch(expenseDateRangeProvider) != null;
+    final hasFilters = ref.watch(invoiceStatusFilterProvider) != null ||
+        ref.watch(invoiceDateRangeProvider) != null;
 
     if (hasFilters) {
       return Center(
@@ -155,14 +176,14 @@ class ExpenseListPage extends ConsumerWidget {
             ),
             const SizedBox(height: 16),
             Text(
-              'No expenses match filters',
+              'No invoices match filters',
               style: theme.textTheme.titleLarge,
             ),
             const SizedBox(height: 8),
             TextButton(
               onPressed: () {
-                ref.read(expenseCategoryFilterProvider.notifier).state = null;
-                ref.read(expenseDateRangeProvider.notifier).state = null;
+                ref.read(invoiceStatusFilterProvider.notifier).state = null;
+                ref.read(invoiceDateRangeProvider.notifier).state = null;
               },
               child: const Text('Clear Filters'),
             ),
@@ -184,22 +205,22 @@ class ExpenseListPage extends ConsumerWidget {
             ),
             const SizedBox(height: 24),
             Text(
-              'No expenses yet',
+              'No invoices yet',
               style: theme.textTheme.headlineSmall,
             ),
             const SizedBox(height: 8),
             Text(
-              'Track your business expenses to see where your money goes',
+              'Create your first invoice to start getting paid',
               textAlign: TextAlign.center,
               style: TextStyle(color: theme.colorScheme.onSurfaceVariant),
             ),
             const SizedBox(height: 24),
             FilledButton.icon(
               onPressed: () {
-                context.push('/expenses/new');
+                context.push('/invoices/new');
               },
               icon: const Icon(Icons.add),
-              label: const Text('Add Your First Expense'),
+              label: const Text('Create Your First Invoice'),
             ),
           ],
         ),

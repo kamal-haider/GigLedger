@@ -11,6 +11,7 @@ import '../features/clients/presentation/pages/client_list_page.dart';
 import '../features/dashboard/presentation/pages/dashboard_page.dart';
 import '../features/expenses/presentation/pages/expense_form_page.dart';
 import '../features/expenses/presentation/pages/expense_list_page.dart';
+import '../features/invoices/presentation/pages/invoice_list_page.dart';
 import '../features/settings/presentation/pages/business_profile_page.dart';
 import 'main_scaffold.dart';
 
@@ -82,7 +83,7 @@ final routerProvider = Provider<GoRouter>((ref) {
               GoRoute(
                 path: '/invoices',
                 name: 'invoices',
-                builder: (context, state) => const InvoicesPage(),
+                builder: (context, state) => const InvoiceListPage(),
                 routes: [
                   GoRoute(
                     path: 'new',
@@ -189,7 +190,8 @@ final routerProvider = Provider<GoRouter>((ref) {
         name: 'reports',
         builder: (context, state) => const PlaceholderScreen(
           title: 'Reports',
-          message: 'Income vs expense charts, top clients, and category breakdown coming soon',
+          message:
+              'Income vs expense charts, top clients, and category breakdown coming soon',
         ),
       ),
 
@@ -206,54 +208,6 @@ final routerProvider = Provider<GoRouter>((ref) {
     ),
   );
 });
-
-/// Invoices page - placeholder for now
-class InvoicesPage extends StatelessWidget {
-  const InvoicesPage({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Invoices'),
-      ),
-      floatingActionButton: FloatingActionButton.extended(
-        onPressed: () => context.goNamed('new-invoice'),
-        icon: const Icon(Icons.add),
-        label: const Text('New Invoice'),
-      ),
-      body: Center(
-        child: Padding(
-          padding: const EdgeInsets.all(24.0),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Icon(
-                Icons.receipt_long,
-                size: 64,
-                color: Theme.of(context).colorScheme.primary,
-              ),
-              const SizedBox(height: 24),
-              Text(
-                'Invoices coming soon',
-                textAlign: TextAlign.center,
-                style: Theme.of(context).textTheme.titleLarge,
-              ),
-              const SizedBox(height: 8),
-              Text(
-                'Create, send, and track invoices',
-                textAlign: TextAlign.center,
-                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                      color: Theme.of(context).colorScheme.onSurfaceVariant,
-                    ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-}
 
 /// Settings page - wraps BusinessProfilePage for now
 class SettingsPage extends StatelessWidget {
