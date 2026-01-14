@@ -31,8 +31,6 @@ class _BusinessProfilePageState extends ConsumerState<BusinessProfilePage> {
   String _selectedCurrency = 'USD';
   bool _hasChanges = false;
   bool _isInitialized = false;
-  bool _isUploadingLogo = false;
-  double _uploadProgress = 0.0;
 
   @override
   void initState() {

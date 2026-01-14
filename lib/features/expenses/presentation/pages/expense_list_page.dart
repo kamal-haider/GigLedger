@@ -4,7 +4,6 @@ import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 
 import '../../application/providers/expense_providers.dart';
-import '../../domain/models/expense.dart';
 import '../widgets/expense_filter_bar.dart';
 import '../widgets/expense_list_tile.dart';
 

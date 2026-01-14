@@ -191,7 +191,7 @@ class ReceiptUploadNotifier extends StateNotifier<ReceiptUploadState> {
       state = state.copyWith(uploadProgress: 1.0);
 
       // Small delay to show completion
-      await Future.delayed(const Duration(milliseconds: 200));
+      await Future<void>.delayed(const Duration(milliseconds: 200));
 
       state = state.copyWith(
         isUploading: false,

@@ -316,7 +316,7 @@ class ReceiptPicker extends ConsumerWidget {
   }
 
   void _showImageSourcePicker(BuildContext context, ReceiptUploadNotifier notifier) {
-    showModalBottomSheet(
+    showModalBottomSheet<void>(
       context: context,
       builder: (context) => SafeArea(
         child: Column(
