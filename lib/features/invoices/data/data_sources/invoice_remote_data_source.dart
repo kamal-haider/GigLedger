@@ -211,23 +211,28 @@ class InvoiceRemoteDataSourceImpl implements InvoiceRemoteDataSource {
   @override
   Future<String> getNextInvoiceNumber() async {
     try {
-      // Get the highest invoice number - force server read to avoid cache
+      // Fetch all invoices and find max number numerically
+      // (Firestore string sorting doesn't handle inconsistent padding correctly)
       final snapshot = await _invoicesCollection
-          .orderBy('invoiceNumber', descending: true)
-          .limit(1)
           .get(const GetOptions(source: Source.server));
 
       if (snapshot.docs.isEmpty) {
         return 'INV-0001';
       }
 
-      final lastNumber = snapshot.docs.first.data()['invoiceNumber'] as String?;
-      if (lastNumber == null || !lastNumber.startsWith('INV-')) {
-        return 'INV-0001';
+      int maxNumber = 0;
+      for (final doc in snapshot.docs) {
+        final invoiceNumber = doc.data()['invoiceNumber'] as String?;
+        if (invoiceNumber != null && invoiceNumber.startsWith('INV-')) {
+          final numberPart = invoiceNumber.substring(4);
+          final parsed = int.tryParse(numberPart) ?? 0;
+          if (parsed > maxNumber) {
+            maxNumber = parsed;
+          }
+        }
       }
 
-      final numberPart = lastNumber.substring(4);
-      final nextNumber = (int.tryParse(numberPart) ?? 0) + 1;
+      final nextNumber = maxNumber + 1;
       return 'INV-${nextNumber.toString().padLeft(4, '0')}';
     } catch (e) {
       throw ServerException('Failed to get next invoice number: $e',
