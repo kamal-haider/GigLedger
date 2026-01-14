@@ -27,6 +27,25 @@ class TopClientsReportPage extends ConsumerWidget {
             },
             tooltip: 'Refresh',
           ),
+          PopupMenuButton<String>(
+            icon: const Icon(Icons.more_vert),
+            tooltip: 'More reports',
+            onSelected: (value) {
+              if (value == 'income-expense') {
+                context.go('/reports');
+              }
+            },
+            itemBuilder: (context) => [
+              const PopupMenuItem(
+                value: 'income-expense',
+                child: ListTile(
+                  leading: Icon(Icons.bar_chart),
+                  title: Text('Income vs Expenses'),
+                  contentPadding: EdgeInsets.zero,
+                ),
+              ),
+            ],
+          ),
         ],
       ),
       body: Column(
