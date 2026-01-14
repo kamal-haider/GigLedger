@@ -37,7 +37,8 @@ class _LineItemEditorState extends State<LineItemEditor> {
   @override
   void initState() {
     super.initState();
-    _descriptionController = TextEditingController(text: widget.item.description);
+    _descriptionController =
+        TextEditingController(text: widget.item.description);
     _quantityController = TextEditingController(
       text: widget.item.quantity == widget.item.quantity.toInt()
           ? widget.item.quantity.toInt().toString()
@@ -54,9 +55,10 @@ class _LineItemEditorState extends State<LineItemEditor> {
     // Only update controllers if the item ID changed (e.g., reordering)
     if (oldWidget.item.id != widget.item.id) {
       _descriptionController.text = widget.item.description;
-      _quantityController.text = widget.item.quantity == widget.item.quantity.toInt()
-          ? widget.item.quantity.toInt().toString()
-          : widget.item.quantity.toString();
+      _quantityController.text =
+          widget.item.quantity == widget.item.quantity.toInt()
+              ? widget.item.quantity.toInt().toString()
+              : widget.item.quantity.toString();
       _rateController.text = widget.item.rate.toStringAsFixed(2);
     }
   }
@@ -84,7 +86,8 @@ class _LineItemEditorState extends State<LineItemEditor> {
             Row(
               children: [
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                   decoration: BoxDecoration(
                     color: theme.colorScheme.primaryContainer,
                     borderRadius: BorderRadius.circular(12),
@@ -138,7 +141,8 @@ class _LineItemEditorState extends State<LineItemEditor> {
                       labelText: 'Qty',
                       border: OutlineInputBorder(),
                     ),
-                    keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                    keyboardType:
+                        const TextInputType.numberWithOptions(decimal: true),
                     inputFormatters: [
                       FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d*')),
                     ],
@@ -161,9 +165,11 @@ class _LineItemEditorState extends State<LineItemEditor> {
                       prefixText: '\$ ',
                       border: OutlineInputBorder(),
                     ),
-                    keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                    keyboardType:
+                        const TextInputType.numberWithOptions(decimal: true),
                     inputFormatters: [
-                      FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d{0,2}')),
+                      FilteringTextInputFormatter.allow(
+                          RegExp(r'^\d*\.?\d{0,2}')),
                     ],
                     textInputAction: TextInputAction.done,
                     onChanged: (value) {

@@ -81,7 +81,8 @@ class InvoiceFormState {
     bool clearErrorMessage = false,
   }) {
     return InvoiceFormState(
-      selectedClient: clearClient ? null : (selectedClient ?? this.selectedClient),
+      selectedClient:
+          clearClient ? null : (selectedClient ?? this.selectedClient),
       invoiceNumber: invoiceNumber ?? this.invoiceNumber,
       lineItems: lineItems ?? this.lineItems,
       issueDate: issueDate ?? this.issueDate,
@@ -90,7 +91,8 @@ class InvoiceFormState {
       notes: notes ?? this.notes,
       terms: terms ?? this.terms,
       isLoading: isLoading ?? this.isLoading,
-      errorMessage: clearErrorMessage ? null : (errorMessage ?? this.errorMessage),
+      errorMessage:
+          clearErrorMessage ? null : (errorMessage ?? this.errorMessage),
       isSaved: isSaved ?? this.isSaved,
       existingInvoiceId: existingInvoiceId ?? this.existingInvoiceId,
       originalCreatedAt: originalCreatedAt ?? this.originalCreatedAt,

@@ -112,7 +112,9 @@ class _InvoiceFormPageState extends ConsumerState<InvoiceFormPage> {
                       orElse: () => null,
                     );
                 if (mounted) {
-                  ref.read(invoiceFormProvider.notifier).initForEdit(invoice, client);
+                  ref
+                      .read(invoiceFormProvider.notifier)
+                      .initForEdit(invoice, client);
                 }
               });
             }
@@ -444,15 +446,17 @@ class _InvoiceFormPageState extends ConsumerState<InvoiceFormPage> {
                         : _saveAsDraft,
                     child: Padding(
                       padding: const EdgeInsets.symmetric(vertical: 12),
-                      child: Text(isEditMode ? 'Update Draft' : 'Save as Draft'),
+                      child:
+                          Text(isEditMode ? 'Update Draft' : 'Save as Draft'),
                     ),
                   ),
                 ),
                 const SizedBox(width: 16),
                 Expanded(
                   child: FilledButton(
-                    onPressed:
-                        formState.isLoading || !formState.canSend ? null : _saveAndSend,
+                    onPressed: formState.isLoading || !formState.canSend
+                        ? null
+                        : _saveAndSend,
                     child: Padding(
                       padding: const EdgeInsets.symmetric(vertical: 12),
                       child: formState.isLoading
