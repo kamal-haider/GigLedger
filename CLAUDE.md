@@ -102,6 +102,58 @@ gh issue list --label "post-mvp"
 
 **Full details:** See `docs/11_ticket_selection_guide.md`
 
+## ⚠️ CRITICAL: Issue-First Development
+
+**The GitHub Project is the source of truth for human-agent collaboration. ALL work must be tracked there.**
+
+### The Rule
+
+**BEFORE writing any code, an issue MUST exist in the GitHub project.**
+
+This applies to:
+- ✅ New features
+- ✅ Bug fixes (even bugs discovered during testing)
+- ✅ Refactoring
+- ✅ Documentation changes
+- ✅ Any work that will result in a PR
+
+### Why This Matters
+
+The GitHub project enables:
+1. **Transparency** - Humans can see what agents are working on
+2. **Coordination** - Multiple agents/humans don't duplicate work
+3. **History** - Decisions and context are preserved across sessions
+4. **Handoffs** - Work can be picked up by different agents seamlessly
+
+When agents skip issue creation, this breaks down. PRs appear without context, work isn't tracked, and humans lose visibility.
+
+### Workflow
+
+```bash
+# 1. FIRST: Create the issue
+gh issue create --title "Bug: Description" --body "Details..." --label "bug"
+
+# 2. Add to project board
+gh project item-add 6 --owner kamal-haider --url <issue-url>
+
+# 3. Mark as in-progress
+gh issue edit <number> --add-label "in-progress"
+
+# 4. THEN: Create branch and write code
+git checkout -b bugfix/description
+
+# 5. PR references the issue
+gh pr create --title "fix: Description" --body "Fixes #<number>..."
+```
+
+### Common Mistake to Avoid
+
+❌ **Wrong**: User reports bug → Agent fixes it → Creates PR → (Issue never created)
+
+✅ **Right**: User reports bug → Agent creates issue → Adds to project → Creates PR referencing issue
+
+**Even for "quick fixes", create the issue first. It takes 30 seconds and maintains project integrity.**
+
 ## Git Workflow & Branch Strategy
 
 ### Branch Naming Convention

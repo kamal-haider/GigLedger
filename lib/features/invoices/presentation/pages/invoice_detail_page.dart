@@ -225,31 +225,30 @@ class _InvoiceDetailContentState extends ConsumerState<_InvoiceDetailContent> {
 
     if (confirmed != true) return;
 
-    setState(() => _isLoading = true);
+    // Capture references before any async work - the widget tree will change
+    final scaffoldMessenger = ScaffoldMessenger.of(context);
+    final invoiceId = invoice.id;
+    final notifier = ref.read(invoiceNotifierProvider.notifier);
+
+    // Navigate away FIRST to avoid the stream update showing "Invoice not found"
+    context.go('/invoices');
+
+    // Now delete in the background and show result via snackbar
     try {
-      await ref
-          .read(invoiceNotifierProvider.notifier)
-          .deleteInvoice(invoice.id);
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Invoice deleted'),
-            behavior: SnackBarBehavior.floating,
-          ),
-        );
-        context.pop();
-      }
+      await notifier.deleteInvoice(invoiceId);
+      scaffoldMessenger.showSnackBar(
+        const SnackBar(
+          content: Text('Invoice deleted'),
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
     } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Failed to delete invoice: $e'),
-            behavior: SnackBarBehavior.floating,
-            backgroundColor: Theme.of(context).colorScheme.error,
-          ),
-        );
-        setState(() => _isLoading = false);
-      }
+      scaffoldMessenger.showSnackBar(
+        SnackBar(
+          content: Text('Failed to delete invoice: $e'),
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
     }
   }
 
