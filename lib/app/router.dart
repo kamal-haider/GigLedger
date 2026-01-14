@@ -11,6 +11,7 @@ import '../features/clients/presentation/pages/client_list_page.dart';
 import '../features/dashboard/presentation/pages/dashboard_page.dart';
 import '../features/expenses/presentation/pages/expense_form_page.dart';
 import '../features/expenses/presentation/pages/expense_list_page.dart';
+import '../features/invoices/presentation/pages/invoice_detail_page.dart';
 import '../features/invoices/presentation/pages/invoice_form_page.dart';
 import '../features/invoices/presentation/pages/invoice_list_page.dart';
 import '../features/settings/presentation/pages/business_profile_page.dart';
@@ -96,8 +97,18 @@ final routerProvider = Provider<GoRouter>((ref) {
                     name: 'invoice-detail',
                     builder: (context, state) {
                       final id = state.pathParameters['id']!;
-                      return InvoiceFormPage(invoiceId: id);
+                      return InvoiceDetailPage(invoiceId: id);
                     },
+                    routes: [
+                      GoRoute(
+                        path: 'edit',
+                        name: 'edit-invoice',
+                        builder: (context, state) {
+                          final id = state.pathParameters['id']!;
+                          return InvoiceFormPage(invoiceId: id);
+                        },
+                      ),
+                    ],
                   ),
                 ],
               ),
