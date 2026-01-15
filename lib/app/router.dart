@@ -14,6 +14,7 @@ import '../features/expenses/presentation/pages/expense_list_page.dart';
 import '../features/invoices/presentation/pages/invoice_detail_page.dart';
 import '../features/invoices/presentation/pages/invoice_form_page.dart';
 import '../features/invoices/presentation/pages/invoice_list_page.dart';
+import '../features/reports/presentation/pages/expense_category_report_page.dart';
 import '../features/reports/presentation/pages/income_expense_report_page.dart';
 import '../features/reports/presentation/pages/top_clients_report_page.dart';
 import '../features/settings/presentation/pages/business_profile_page.dart';
@@ -202,6 +203,11 @@ final routerProvider = Provider<GoRouter>((ref) {
         path: '/reports/top-clients',
         name: 'top-clients-report',
         builder: (context, state) => const TopClientsReportPage(),
+      ),
+      GoRoute(
+        path: '/reports/expenses-by-category',
+        name: 'expense-category-report',
+        builder: (context, state) => const ExpenseCategoryReportPage(),
       ),
 
       // Root redirect
