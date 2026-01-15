@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 import '../../application/providers/invoice_providers.dart';
 import '../../domain/models/invoice.dart';
@@ -103,30 +104,135 @@ class _InvoiceDetailContentState extends ConsumerState<_InvoiceDetailContent> {
     }
   }
 
+  String _buildEmailBody() {
+    final currencyFormat = NumberFormat.currency(symbol: '\$');
+    final dateFormat = DateFormat.yMMMd();
+
+    final buffer = StringBuffer();
+    buffer.writeln('Dear ${invoice.clientName},');
+    buffer.writeln();
+    buffer.writeln(
+        'Please find below the details for Invoice ${invoice.invoiceNumber}:');
+    buffer.writeln();
+    buffer.writeln('Invoice Number: ${invoice.invoiceNumber}');
+    buffer.writeln('Issue Date: ${dateFormat.format(invoice.issueDate)}');
+    buffer.writeln('Due Date: ${dateFormat.format(invoice.dueDate)}');
+    buffer.writeln();
+    buffer.writeln('--- Line Items ---');
+    for (final item in invoice.lineItems) {
+      buffer.writeln(
+          '${item.description}: ${item.quantity} x ${currencyFormat.format(item.rate)} = ${currencyFormat.format(item.amount)}');
+    }
+    buffer.writeln();
+    buffer.writeln('Subtotal: ${currencyFormat.format(invoice.subtotal)}');
+    buffer.writeln(
+        'Tax (${invoice.taxRate.toStringAsFixed(1)}%): ${currencyFormat.format(invoice.taxAmount)}');
+    buffer.writeln('Total Due: ${currencyFormat.format(invoice.total)}');
+    buffer.writeln();
+
+    if (invoice.notes != null && invoice.notes!.isNotEmpty) {
+      buffer.writeln('Notes: ${invoice.notes}');
+      buffer.writeln();
+    }
+
+    if (invoice.terms != null && invoice.terms!.isNotEmpty) {
+      buffer.writeln('Terms: ${invoice.terms}');
+      buffer.writeln();
+    }
+
+    buffer.writeln('Thank you for your business!');
+
+    return buffer.toString();
+  }
+
   Future<void> _sendInvoice() async {
-    setState(() => _isLoading = true);
+    final subject = 'Invoice ${invoice.invoiceNumber} from Your Business';
+    final body = _buildEmailBody();
+
+    final emailUri = Uri(
+      scheme: 'mailto',
+      path: invoice.clientEmail,
+      queryParameters: {
+        'subject': subject,
+        'body': body,
+      },
+    );
+
     try {
-      await ref.read(invoiceNotifierProvider.notifier).markAsSent(invoice.id);
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Invoice sent to ${invoice.clientEmail}'),
-            behavior: SnackBarBehavior.floating,
+      final launched = await launchUrl(emailUri);
+      if (!launched) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Could not open email app'),
+              behavior: SnackBarBehavior.floating,
+            ),
+          );
+        }
+        return;
+      }
+
+      // After returning from email app, ask if they sent it
+      if (!mounted) return;
+
+      final didSend = await showDialog<bool>(
+        context: context,
+        builder: (context) => AlertDialog(
+          title: const Text('Mark as Sent?'),
+          content: const Text(
+            'Did you send the invoice? This will update the invoice status to "Sent".',
           ),
-        );
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(false),
+              child: const Text('Not Yet'),
+            ),
+            FilledButton(
+              onPressed: () => Navigator.of(context).pop(true),
+              child: const Text('Yes, Mark as Sent'),
+            ),
+          ],
+        ),
+      );
+
+      if (didSend == true && mounted) {
+        setState(() => _isLoading = true);
+        try {
+          await ref
+              .read(invoiceNotifierProvider.notifier)
+              .markAsSent(invoice.id);
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(
+                content: Text('Invoice marked as sent'),
+                behavior: SnackBarBehavior.floating,
+              ),
+            );
+          }
+        } catch (e) {
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text('Failed to update invoice: $e'),
+                behavior: SnackBarBehavior.floating,
+                backgroundColor: Theme.of(context).colorScheme.error,
+              ),
+            );
+          }
+        } finally {
+          if (mounted) setState(() => _isLoading = false);
+        }
       }
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Failed to send invoice: $e'),
+            content: Text('Failed to open email: $e'),
             behavior: SnackBarBehavior.floating,
             backgroundColor: Theme.of(context).colorScheme.error,
           ),
         );
       }
-    } finally {
-      if (mounted) setState(() => _isLoading = false);
     }
   }
 
